@@ -50,10 +50,19 @@ export default tseslint.config(
       "**/dist-types/**",
       "**/node_modules/**",
       "**/.claude/**",
+      ".plan/**",
       "**/coverage/**",
     ],
   },
   ...tseslint.configs.recommended,
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
   forbid("packages/engine", []),
   forbid("packages/content", ["engine"]),
   forbid("packages/protocol", ["engine", "content"]),

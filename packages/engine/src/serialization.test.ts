@@ -7,7 +7,7 @@ import { Unit } from "./entities/Unit.js";
 import { City } from "./entities/City.js";
 import { Tile } from "./entities/Tile.js";
 import type { GameSettings } from "./game-state.js";
-import type { HexKey, UnitDefId, BuildingDefId, PlayerId, UnitId, CityId } from "./ids.js";
+import type { HexKey, UnitDefId, PlayerId, UnitId, CityId } from "./ids.js";
 
 const EMPTY_REGISTRY = Registry.load({
   units: [],
