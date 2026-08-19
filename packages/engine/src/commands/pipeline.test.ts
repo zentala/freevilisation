@@ -352,3 +352,61 @@ describe("applyCommand — immutability", () => {
     expect(state.entities.cities).toBe(origCities);
   });
 });
+
+describe("EndTurn — turn boundary", () => {
+  it("move → EndTurn → move again succeeds (regression)", () => {
+    let state = makeBaseState();
+
+    const move1 = applyCommand(state, {
+      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+    });
+    expect(move1.ok).toBe(true);
+    if (!move1.ok) throw new Error("expected ok");
+    state = move1.state;
+
+    const endP1 = applyCommand(state, { kind: "EndTurn", playerId: P1 });
+    expect(endP1.ok).toBe(true);
+    if (!endP1.ok) throw new Error("expected ok");
+    state = endP1.state;
+
+    const endP2 = applyCommand(state, { kind: "EndTurn", playerId: P2 });
+    expect(endP2.ok).toBe(true);
+    if (!endP2.ok) throw new Error("expected ok");
+    state = endP2.state;
+
+    const move2 = applyCommand(state, {
+      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["2,0" as HexKey],
+    });
+    expect(move2.ok).toBe(true);
+    if (!move2.ok) throw new Error("expected ok");
+    expect(move2.state.entities.units[U1]!.coord).toBe("2,0");
+    expect(move2.state.entities.units[U1]!.movesLeft).toBe(2);
+  });
+
+  it("refreshUnitMoves restores only the starting player's units", () => {
+    let state = makeBaseState();
+
+    const move1 = applyCommand(state, {
+      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+    });
+    expect(move1.ok).toBe(true);
+    if (!move1.ok) throw new Error("expected ok");
+    state = move1.state;
+
+    const endP1 = applyCommand(state, { kind: "EndTurn", playerId: P1 });
+    expect(endP1.ok).toBe(true);
+    if (!endP1.ok) throw new Error("expected ok");
+    state = endP1.state;
+
+    expect(state.entities.units[U1]!.movesLeft).toBe(2);
+    expect(state.entities.units[U2]!.movesLeft).toBe(3);
+  });
+
+  it("returned state always has phase 'playing'", () => {
+    const state = makeBaseState();
+    const result = applyCommand(state, { kind: "EndTurn", playerId: P1 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.state.phase).toBe("playing");
+  });
+});

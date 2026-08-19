@@ -71,3 +71,11 @@ export { EventBus } from "./event-bus.js";
 export type { EventListener } from "./event-bus.js";
 
 export { GameSession } from "./game-session.js";
+
+export { refreshUnitMoves } from "./systems/refresh-unit-moves.js";
+export type { TurnSystem } from "./systems/refresh-unit-moves.js";
+
+export { replay, assertDeterministic } from "./testing/determinism-harness.js";
+export type { DeterminismRun } from "./testing/determinism-harness.js";
+
+export { assertInvariants } from "./invariants.js";
