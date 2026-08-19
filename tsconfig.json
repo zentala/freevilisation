@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/engine" },
+    { "path": "./packages/content" },
+    { "path": "./packages/protocol" },
+    { "path": "./packages/mapgen" },
+    { "path": "./packages/ai" }
+  ]
+}
