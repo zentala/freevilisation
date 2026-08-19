@@ -4,5 +4,6 @@ export default defineConfig({
   test: {
     name: '@freevilisation/protocol',
     environment: 'node',
+    include: ['src/**/*.test.ts'],
   },
 })

@@ -4,5 +4,6 @@ export default defineConfig({
   test: {
     name: '@freevilisation/server',
     environment: 'node',
+    include: ['src/**/*.test.ts'],
   },
 })

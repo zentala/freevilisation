@@ -4,5 +4,6 @@ export default defineConfig({
   test: {
     name: '@freevilisation/mapgen',
     environment: 'node',
+    include: ['src/**/*.test.ts'],
   },
 })
