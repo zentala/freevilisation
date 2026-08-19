@@ -22,6 +22,13 @@ gitignored here) — read it, never commit to it from a worktree.
   zod-validated rulesets.
 - Package dependency directions are enforced by ESLint; do not work around
   a boundary error by loosening the rule.
+- Entity ids are **branded**, and the brands are nominally distinct even though
+  the runtime value is the same string. `makeEntityId()` returns a plain
+  `EntityId`; assigning it to a narrower id needs an explicit cast —
+  `makeEntityId(state.nextEntitySeq) as CityId` (see
+  `packages/engine/src/commands/pipeline.ts:101`). The cast is the intended
+  shape, not a smell: it is the one place the narrowing is stated. Do not
+  "fix" it by widening the branded types.
 
 ## Code style
 
