@@ -4,3 +4,8 @@ packages:
   - tools/*
 allowBuilds:
   esbuild: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - '@cloudflare/workers-types@5.20260819.1'
+  - miniflare@5.20260815.0-alpha
+  - wrangler@4.124.0

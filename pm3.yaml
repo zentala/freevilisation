@@ -1,0 +1,14 @@
+version: 1
+name: freevilisation
+description: Freevilisation game
+
+services:
+  - name: client
+    description: Client dev server (Vite + React)
+    cwd: apps/client
+    cmd: pnpm dev
+    port: 5174
+    domain: freevilisation.internal
+    health: { type: http, port: 5174 }
+    env:
+      NODE_ENV: development
