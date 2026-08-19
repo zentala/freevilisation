@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "noEmit": false,
+    "outDir": "dist-types"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../../packages/engine" },
+    { "path": "../../packages/content" },
+    { "path": "../../packages/protocol" },
+    { "path": "../../packages/mapgen" },
+    { "path": "../../packages/ai" }
+  ]
+}
