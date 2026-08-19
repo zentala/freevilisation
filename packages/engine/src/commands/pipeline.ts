@@ -89,7 +89,9 @@ function handleMoveUnit(state: GameState, command: Command & { kind: "MoveUnit" 
 function handleFoundCity(state: GameState, command: Command & { kind: "FoundCity" }): CommandResult {
   const unit = state.entities.units[command.unitId]!;
   const cityId = makeEntityId(state.nextEntitySeq) as CityId;
-  const isFirstCity = Object.keys(state.entities.cities).length === 0;
+  const isFirstCity = !Object.values(state.entities.cities).some(
+    (c) => c.ownerId === command.playerId,
+  );
 
   const city = new City(
     cityId, state.turn, command.playerId, state.turn,
