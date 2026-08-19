@@ -87,6 +87,30 @@ describe("determinism-harness", () => {
     expect(run1.hash).not.toBe(run2.hash);
   });
 
+  it("accepts a deterministic multi-command log", () => {
+    const commands: Command[] = [
+      { kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey] },
+      { kind: "EndTurn", playerId: P1 },
+      { kind: "EndTurn", playerId: P2 },
+      { kind: "MoveUnit", playerId: P1, unitId: U1, path: ["2,0" as HexKey] },
+    ];
+    expect(() => assertDeterministic(makeBaseState, commands)).not.toThrow();
+  });
+
+  it("names the diverging command index", () => {
+    let counter = 0;
+    const factory = (): GameState => {
+      const s = makeBaseState();
+      s.nextEntitySeq = counter++;
+      return s;
+    };
+    const commands: Command[] = [
+      { kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey] },
+      { kind: "EndTurn", playerId: P1 },
+    ];
+    expect(() => assertDeterministic(factory, commands)).toThrow(/command index 0/);
+  });
+
   it("assertDeterministic throws on a non-deterministic factory", () => {
     let counter = 0;
     const nonDetFactory = (): GameState => {
