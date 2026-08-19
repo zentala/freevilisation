@@ -35,6 +35,19 @@ gitignored here) — read it, never commit to it from a worktree.
 
 **pnpm only** — never npm, never yarn. Node version from `.nvmrc`.
 
+This is a pnpm **workspace**, so an install at the repo root needs an explicit
+flag or pnpm refuses it:
+
+| Where the dependency belongs | Command |
+|---|---|
+| Repo root (tooling: eslint, typescript, vitest config) | `pnpm add -Dw <pkg>` |
+| One package | `pnpm --filter <pkg-name> add -D <pkg>` |
+
+Without `-w` at the root you get `ERR_PNPM_ADDING_TO_ROOT` and nothing is
+installed. The guard exists because a dependency added to the root is invisible
+to the package that actually imports it, which breaks the build only later, in
+CI. Do not silence the warning with `ignore-workspace-root-check`.
+
 ## Commits
 
 Conventional Commits: `<type>(<scope>): <subject>`, subject ≤ 50 chars,
