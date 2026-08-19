@@ -43,3 +43,18 @@ export type {
 } from "./registry.js";
 
 export { EntityStore } from "./entity-store.js";
+
+export { createPrng, restorePrng } from "./prng.js";
+export type { Prng, RngState } from "./prng.js";
+
+export { createInitialGameState } from "./game-state.js";
+export type {
+  GameMap,
+  EntityStores,
+  GameSettings,
+  GamePhase,
+  GameState,
+  RulesetRef,
+} from "./game-state.js";
+
+export { serialize, deserialize, stateHash } from "./serialization.js";

@@ -14,5 +14,8 @@
   "scripts": {
     "build": "tsc --build",
     "typecheck": "tsc --build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1"
   }
 }
