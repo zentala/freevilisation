@@ -66,3 +66,8 @@ export type {
   CommandResult,
   CommandRejection,
 } from "./commands/types.js";
+
+export { EventBus } from "./event-bus.js";
+export type { EventListener } from "./event-bus.js";
+
+export { GameSession } from "./game-session.js";
