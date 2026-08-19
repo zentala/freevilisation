@@ -4,6 +4,9 @@ import type { CityId } from "../ids.js";
 import { Unit } from "../entities/Unit.js";
 import { City } from "../entities/City.js";
 import { makeEntityId } from "../ids.js";
+import { refreshUnitMoves, type TurnSystem } from "../systems/refresh-unit-moves.js";
+
+const TURN_SYSTEMS: TurnSystem[] = [refreshUnitMoves];
 
 const VALID_KINDS = new Set(["MoveUnit", "FoundCity", "EndTurn"]);
 
@@ -130,14 +133,34 @@ function handleEndTurn(state: GameState, command: Command & { kind: "EndTurn" })
   const nextTurn = wrap ? state.turn + 1 : state.turn;
   const nextActivePlayerId = state.playerOrder[nextIndex] ?? null;
 
+  const turnEndedEvent: GameEvent = { kind: "TurnEnded", turn: state.turn, activePlayerId: command.playerId };
+
+  const resolutionState: GameState = {
+    ...state,
+    turn: nextTurn,
+    activePlayerId: nextActivePlayerId,
+    phase: "turn_resolution",
+  };
+
+  let systemState = resolutionState;
+  const systemEvents: GameEvent[] = [];
+  for (const system of TURN_SYSTEMS) {
+    const result = system(systemState, nextActivePlayerId!);
+    systemState = result.state;
+    systemEvents.push(...result.events);
+  }
+
+  const finalState: GameState = { ...systemState, phase: "playing" };
+
   const events: GameEvent[] = [
-    { kind: "TurnEnded", turn: state.turn, activePlayerId: command.playerId },
+    turnEndedEvent,
+    ...systemEvents,
     { kind: "TurnStarted", turn: nextTurn, activePlayerId: nextActivePlayerId },
   ];
 
   return {
     ok: true,
-    state: { ...state, turn: nextTurn, activePlayerId: nextActivePlayerId },
+    state: finalState,
     events,
   };
 }
