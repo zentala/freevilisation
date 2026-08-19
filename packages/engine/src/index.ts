@@ -58,3 +58,11 @@ export type {
 } from "./game-state.js";
 
 export { serialize, deserialize, stateHash } from "./serialization.js";
+
+export { validate, applyCommand } from "./commands/pipeline.js";
+export type {
+  Command,
+  GameEvent,
+  CommandResult,
+  CommandRejection,
+} from "./commands/types.js";
