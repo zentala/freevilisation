@@ -3,3 +3,6 @@ dist/
 .plan/
 .env
 .claude/
+.turbo
+*.tsbuildinfo
+coverage/
