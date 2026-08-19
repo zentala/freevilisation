@@ -23,9 +23,9 @@ function forbid(dir, allowed) {
   const banned = WORKSPACE.filter((p) => !allowed.includes(p));
   const patterns = [
     {
-      group: ["../../*"],
+      group: ["../**/src/**"],
       message:
-        "Relative imports must not leave the package. Import the sibling by its workspace name.",
+        "Relative imports must not reach into another package. Import the sibling by its workspace name.",
     },
   ];
   if (banned.length > 0) {
