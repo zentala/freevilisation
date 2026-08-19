@@ -108,6 +108,23 @@ describe("validate", () => {
     expect(result!.code).toBe("unknown_entity");
   });
 
+  it("rejects a player missing from the turn order", () => {
+    const state = makeBaseState();
+    state.playerOrder = [P2];
+    const result = validate(state, { kind: "EndTurn", playerId: P1 });
+    expect(result).not.toBeNull();
+    expect(result!.code).toBe("unknown_entity");
+  });
+
+  it("rejects EndTurn when the turn order is empty", () => {
+    const state = makeBaseState();
+    state.playerOrder = [];
+    const turnBefore = state.turn;
+    const result = applyCommand(state, { kind: "EndTurn", playerId: P1 });
+    expect(result.ok).toBe(false);
+    expect(state.turn).toBe(turnBefore);
+  });
+
   it("rejects unit owned by another player", () => {
     const state = makeBaseState();
     const result = validate(state, {

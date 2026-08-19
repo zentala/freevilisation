@@ -20,6 +20,13 @@ export function validate(state: GameState, command: Command): CommandRejection |
     return { code: "not_your_turn", message: "It is not your turn" };
   }
 
+  if (!state.playerOrder.includes(command.playerId)) {
+    return {
+      code: "unknown_entity",
+      message: `Player is not in the turn order: ${command.playerId}`,
+    };
+  }
+
   if (command.kind === "EndTurn") {
     return null;
   }
