@@ -21,13 +21,14 @@ export type PolicyDefId = DefId<"policy">;
 
 export type HexKey = Brand<string, "HexKey">;
 
-// Engine-internal exception: IDs are generated once at creation time and
-// never reused. Monotonic counter + timestamp is acceptable here even though
-// the rest of the package bans Date/Math.random (determinism only matters
-// for gameplay commands, not for unique identity generation).
-let counter = 0;
-export function createEntityId(): EntityId {
-  const ts = Date.now().toString(36);
-  const seq = (counter++).toString(36).padStart(4, "0");
-  return `ent_${ts}${seq}` as EntityId;
+/**
+ * Builds an entity id from a sequence number owned by the caller.
+ *
+ * The engine must be deterministic: the same command log replayed on any
+ * machine must produce identical ids. So this function holds no state and
+ * reads no clock — the monotonic counter lives in GameState, which is
+ * serialized with the rest of the game.
+ */
+export function makeEntityId(seq: number): EntityId {
+  return `ent_${seq.toString(36).padStart(6, "0")}` as EntityId;
 }

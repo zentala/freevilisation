@@ -20,7 +20,7 @@ export type {
   HexKey,
 } from "./ids.js";
 
-export { createEntityId } from "./ids.js";
+export { makeEntityId } from "./ids.js";
 
 export {
   Entity,
