@@ -161,5 +161,46 @@ describe("hex-math", () => {
       expect(l[0]).toEqual(a);
       expect(l[l.length - 1]).toEqual(b);
     });
+
+    it("line midpoint between (0,0) and (-1,-1) is (0,-1), not (0,0)", () => {
+      const l = line(O, { q: -1, r: -1 });
+      expect(l).toHaveLength(3);
+      expect(l[0]!.q + 0).toBe(0);
+      expect(l[0]!.r).toBe(0);
+      expect(l[1]!.q + 0).toBe(0);
+      expect(l[1]!.r).toBe(-1);
+      expect(l[2]!.q).toBe(-1);
+      expect(l[2]!.r).toBe(-1);
+    });
+
+    it("line midpoint between (1,1) and (-1,-1) passes through (0,0)", () => {
+      const l = line({ q: 1, r: 1 }, { q: -1, r: -1 });
+      expect(l).toHaveLength(5);
+      expect(l[0]!.q).toBe(1);
+      expect(l[0]!.r).toBe(1);
+      expect(l[1]!.q).toBe(1);
+      expect(l[1]!.r).toBe(0);
+      expect(l[2]!.q + 0).toBe(0);
+      expect(l[2]!.r).toBe(0);
+      expect(l[3]!.q + 0).toBe(0);
+      expect(l[3]!.r).toBe(-1);
+      expect(l[4]!.q).toBe(-1);
+      expect(l[4]!.r).toBe(-1);
+    });
+
+    it("line (0,0) to (-2,-2) steps through correct half-way hexes", () => {
+      const l = line(O, { q: -2, r: -2 });
+      expect(l).toHaveLength(5);
+      expect(l[0]!.q + 0).toBe(0);
+      expect(l[0]!.r).toBe(0);
+      expect(l[1]!.q + 0).toBe(0);
+      expect(l[1]!.r).toBe(-1);
+      expect(l[2]!.q).toBe(-1);
+      expect(l[2]!.r).toBe(-1);
+      expect(l[3]!.q).toBe(-1);
+      expect(l[3]!.r).toBe(-2);
+      expect(l[4]!.q).toBe(-2);
+      expect(l[4]!.r).toBe(-2);
+    });
   });
 });

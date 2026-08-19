@@ -38,6 +38,9 @@ export function fromHexKey(key: HexKey): AxialCoord {
   if (!Number.isFinite(q) || !Number.isFinite(r)) {
     throw new Error(`Malformed HexKey: "${key}"`);
   }
+  if (!Number.isInteger(q) || !Number.isInteger(r)) {
+    throw new Error(`Malformed HexKey: "${key}"`);
+  }
   return { q, r };
 }
 

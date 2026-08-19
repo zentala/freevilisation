@@ -47,6 +47,18 @@ describe("coords", () => {
     it("throws on empty string", () => {
       expect(() => fromHexKey("" as HexKey)).toThrow("Malformed HexKey");
     });
+
+    it("throws on fractional q", () => {
+      expect(() => fromHexKey("1.5,2" as HexKey)).toThrow("Malformed HexKey");
+    });
+
+    it("throws on fractional r", () => {
+      expect(() => fromHexKey("1,2.5" as HexKey)).toThrow("Malformed HexKey");
+    });
+
+    it("throws on negative fractional key", () => {
+      expect(() => fromHexKey("-1.5,-2" as HexKey)).toThrow("Malformed HexKey");
+    });
   });
 
   describe("cubeS", () => {
