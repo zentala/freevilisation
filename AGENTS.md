@@ -89,7 +89,7 @@ package".
   Node's global scope.
 - Comparing timestamps requires the same unit on both sides — an ISO-8601
   string compared against Unix-ms with `>=` silently evaluates to `NaN >=
-  number` (always `false`), which looks like "no data" rather than a type
+number` (always `false`), which looks like "no data" rather than a type
   error. Normalize both sides to ms first.
 
 ## Commits
