@@ -65,6 +65,15 @@ describe("generateMap", () => {
     expect(calls[calls.length - 1]).toBe(100);
   });
 
+  // Guard, not proof: the stages clamp at the grid edge (rivers.ts drops
+  // neighbours at `nq < 0 || nq >= width`), so the generator produces a flat
+  // map. This test fails if someone flips the flag back to `true` without
+  // teaching the stages to wrap.
+  it("reports a flat map, matching what the stages actually generate", () => {
+    const r = generateMap({ seed: 1, mapType: "continents", mapSize: "tiny" });
+    expect(r.isWraparoundX).toBe(false);
+  });
+
   it("onProgress omitted does not throw", () => {
     expect(() => generateMap({ seed: 1, mapType: "continents", mapSize: "tiny" })).not.toThrow();
   });

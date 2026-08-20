@@ -49,8 +49,15 @@ export interface MapGenResult {
   readonly width: number;
   /** Map height in tiles. */
   readonly height: number;
-  /** Whether the map wraps east-west. */
-  readonly isWraparoundX: true;
+  /**
+   * Whether the map wraps east-west.
+   *
+   * Always `false` today: every stage treats the grid as flat — rivers,
+   * climate and landmass all drop neighbours at `col < 0 || col >= width`
+   * instead of wrapping them. Declaring `true` here would tell the renderer
+   * and pathfinder to join two edges the generator never joined.
+   */
+  readonly isWraparoundX: boolean;
   /** Elevation per tile, length = width * height, values in [0,1). */
   readonly elevation: number[];
   /** Land flag per tile, index-aligned with `elevation`. */
@@ -120,7 +127,7 @@ export function generateMap(
     mapSize: params.mapSize,
     width: landmass.width,
     height: landmass.height,
-    isWraparoundX: true,
+    isWraparoundX: false,
     elevation: landmass.elevation,
     isLand: landmass.isLand,
     terrainDefId: climate.terrainDefId,
