@@ -55,6 +55,12 @@ installed. The guard exists because a dependency added to the root is invisible
 to the package that actually imports it, which breaks the build only later, in
 CI. Do not silence the warning with `ignore-workspace-root-check`.
 
+`dist/` is gitignored, so a fresh worktree has none. Cross-package imports
+(e.g. `packages/mapgen` importing `@freevilisation/engine`) resolve through
+`dist/`, not source — run `pnpm run build` right after `pnpm install`, before
+`pnpm run test`, or those imports fail with "Failed to resolve entry for
+package".
+
 ## Commits
 
 Conventional Commits: `<type>(<scope>): <subject>`, subject ≤ 50 chars,
