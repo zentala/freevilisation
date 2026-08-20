@@ -23,10 +23,22 @@ describe("generateMap", () => {
     );
   });
 
+  it("throws on prototype-keyed mapType (Object.prototype.constructor)", () => {
+    expect(() =>
+      generateMap({ seed: 1, mapType: "constructor" as MapType, mapSize: "tiny" }),
+    ).toThrow('Unknown mapType: "constructor"');
+  });
+
   it("throws on unknown mapSize", () => {
     expect(() =>
       generateMap({ seed: 1, mapType: "continents", mapSize: "mega" as MapSize }),
     ).toThrow('Unknown mapSize: "mega"');
+  });
+
+  it("throws on prototype-keyed mapSize (Object.prototype.constructor)", () => {
+    expect(() =>
+      generateMap({ seed: 1, mapType: "continents", mapSize: "constructor" as MapSize }),
+    ).toThrow('Unknown mapSize: "constructor"');
   });
 
   it("determinism: same params produce deeply-equal elevation and isLand", () => {

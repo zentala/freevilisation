@@ -61,10 +61,10 @@ export function generateMap(
 ): MapGenResult {
   const progress = onProgress ?? (() => {});
 
-  if (!(params.mapType in MAP_TYPE_PRESETS)) {
+  if (!Object.hasOwn(MAP_TYPE_PRESETS, params.mapType)) {
     throw new Error(`Unknown mapType: "${String(params.mapType)}"`);
   }
-  if (!(params.mapSize in MAP_SIZES)) {
+  if (!Object.hasOwn(MAP_SIZES, params.mapSize)) {
     throw new Error(`Unknown mapSize: "${String(params.mapSize)}"`);
   }
 
