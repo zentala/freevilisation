@@ -88,4 +88,17 @@ describe("edgeCost", () => {
     const cost = edgeCost(a, b, () => 42);
     expect(cost).toBe(42);
   });
+
+  // The two tests above cannot see argument order: `distance` is symmetric and
+  // the constant function ignores its arguments, so `costFn(b, a)` passes both.
+  // An asymmetric cost function is the only thing that pins the direction — and
+  // direction matters the moment a cost depends on which way the edge is
+  // traversed (uphill vs downhill, river crossings, one-way terrain).
+  it("passes the arguments in (from, to) order, not reversed", () => {
+    const a: AxialCoord = { q: 0, r: 0 };
+    const b: AxialCoord = { q: 1, r: 0 };
+    const asymmetric = (from: AxialCoord, to: AxialCoord): number => from.q * 10 + to.q;
+    expect(edgeCost(a, b, asymmetric)).toBe(1);
+    expect(edgeCost(b, a, asymmetric)).toBe(10);
+  });
 });
