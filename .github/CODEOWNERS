@@ -1,0 +1,9 @@
+*                       @zentala
+/packages/engine/       @zentala
+/packages/mapgen/       @zentala
+/packages/protocol/     @zentala
+/packages/content/      @zentala
+/packages/ai/           @zentala
+/apps/client/           @zentala
+/apps/server/           @zentala
+/.github/               @zentala
