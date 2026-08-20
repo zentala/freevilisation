@@ -18,6 +18,7 @@ export type {
   CivDefId,
   PolicyDefId,
   HexKey,
+  ChunkKey,
 } from "./ids.js";
 
 export { makeEntityId } from "./ids.js";
@@ -97,3 +98,14 @@ export {
   range,
   line,
 } from "./hex/hex-math.js";
+
+export type { WrapContext } from "./hex/hex-math.js";
+export { wrapQ } from "./hex/hex-math.js";
+
+export {
+  CHUNK_SIZE,
+  toChunkKey,
+  fromChunkKey,
+  chunkTiles,
+  chunksInRadius,
+} from "./hex/chunk.js";
