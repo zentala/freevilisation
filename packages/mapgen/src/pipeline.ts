@@ -3,11 +3,13 @@ import {
   type Prng,
   type TerrainDefId,
   type FeatureDefId,
+  type ResourceDefId,
 } from "@freevilisation/engine";
 import { generateLandmass } from "./stages/landmass.js";
 import { generateClimate } from "./stages/climate.js";
 import { generateRivers } from "./stages/rivers.js";
 import { generateFeatures } from "./stages/features.js";
+import { generateResources } from "./stages/resources.js";
 import { MAP_SIZES, MAP_TYPE_PRESETS } from "./config.js";
 
 /** The four supported map shapes. */
@@ -68,6 +70,8 @@ export interface MapGenResult {
   readonly hasRiver: boolean[];
   /** Feature definition id per tile, index-aligned with `elevation`; null = no feature. */
   readonly featureDefId: (FeatureDefId | null)[];
+  /** Resource definition id per tile, index-aligned with `elevation`; null = no resource. */
+  readonly resourceDefId: (ResourceDefId | null)[];
 }
 
 /**
@@ -96,28 +100,35 @@ export function generateMap(
   progress(0);
   const landmass = generateLandmass(params, {
     prng: landmassPrng,
-    onProgress: (pct) => progress(Math.round(pct * 0.25)),
+    onProgress: (pct) => progress(Math.round(pct * 0.2)),
   });
-  progress(25);
+  progress(20);
 
   const climatePrng = root.fork("climate");
   const climate = generateClimate(params, landmass, {
     prng: climatePrng,
-    onProgress: (pct) => progress(25 + Math.round(pct * 0.25)),
+    onProgress: (pct) => progress(20 + Math.round(pct * 0.2)),
   });
-  progress(50);
+  progress(40);
 
   const riversPrng = root.fork("rivers");
   const rivers = generateRivers(params, landmass, {
     prng: riversPrng,
-    onProgress: (pct) => progress(50 + Math.round(pct * 0.25)),
+    onProgress: (pct) => progress(40 + Math.round(pct * 0.2)),
   });
-  progress(75);
+  progress(60);
 
   const featuresPrng = root.fork("features");
   const features = generateFeatures(params, climate, {
     prng: featuresPrng,
-    onProgress: (pct) => progress(75 + Math.round(pct * 0.25)),
+    onProgress: (pct) => progress(60 + Math.round(pct * 0.2)),
+  });
+  progress(80);
+
+  const resourcesPrng = root.fork("resources");
+  const resources = generateResources(params, climate, landmass, {
+    prng: resourcesPrng,
+    onProgress: (pct) => progress(80 + Math.round(pct * 0.2)),
   });
   progress(100);
 
@@ -133,5 +144,6 @@ export function generateMap(
     terrainDefId: climate.terrainDefId,
     hasRiver: rivers.hasRiver,
     featureDefId: features.featureDefId,
+    resourceDefId: resources.resourceDefId,
   };
 }
