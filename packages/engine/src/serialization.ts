@@ -79,7 +79,7 @@ function revivePlayer(p: PlainEntity): Player {
     asNum(p.cultureStock),
     p.capitalCityId as CityId | null,
     asBool(p.isAlive),
-    (p.eliminatedTurn as number | null),
+    p.eliminatedTurn as number | null,
   );
 }
 
@@ -148,15 +148,24 @@ function projectState(state: GameState): Record<string, unknown> {
       height: state.map.height,
       isWraparoundX: state.map.isWraparoundX,
       tiles: Object.fromEntries(
-        Object.entries(state.map.tiles).map(([k, v]) => [k, projectEntity(v as unknown as { [key: string]: unknown })]),
+        Object.entries(state.map.tiles).map(([k, v]) => [
+          k,
+          projectEntity(v as unknown as { [key: string]: unknown }),
+        ]),
       ),
     },
     entities: {
       units: Object.fromEntries(
-        Object.entries(state.entities.units).map(([k, v]) => [k, projectEntity(v as unknown as { [key: string]: unknown })]),
+        Object.entries(state.entities.units).map(([k, v]) => [
+          k,
+          projectEntity(v as unknown as { [key: string]: unknown }),
+        ]),
       ),
       cities: Object.fromEntries(
-        Object.entries(state.entities.cities).map(([k, v]) => [k, projectEntity(v as unknown as { [key: string]: unknown })]),
+        Object.entries(state.entities.cities).map(([k, v]) => [
+          k,
+          projectEntity(v as unknown as { [key: string]: unknown }),
+        ]),
       ),
     },
     rngState: { ...state.rngState },
@@ -205,9 +214,7 @@ export function deserialize(json: string, _registry: Registry): GameState {
     Object.entries(raw.players as Record<string, Any>).map(([k, v]) => [k, revivePlayer(v)]),
   );
 
-  const tiles = Object.fromEntries(
-    Object.entries(tilesRaw).map(([k, v]) => [k, reviveTile(v)]),
-  );
+  const tiles = Object.fromEntries(Object.entries(tilesRaw).map(([k, v]) => [k, reviveTile(v)]));
 
   return {
     gameId: raw.gameId as EntityId,

@@ -1,12 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { HexKey } from "../ids.js";
 import type { AxialCoord } from "./coords.js";
-import {
-  toHexKey,
-  fromHexKey,
-  cubeS,
-  coordsEqual,
-} from "./coords.js";
+import { toHexKey, fromHexKey, cubeS, coordsEqual } from "./coords.js";
 
 describe("coords", () => {
   describe("toHexKey / fromHexKey round-trip", () => {

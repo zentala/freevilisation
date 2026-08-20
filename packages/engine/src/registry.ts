@@ -53,21 +53,11 @@ export class Registry {
     techs: TechDef[];
     civs: CivDef[];
   }): Registry {
-    const units = new Map<DefId, UnitDef>(
-      defs.units.map((d) => [d.id, d]),
-    );
-    const buildings = new Map<DefId, BuildingDef>(
-      defs.buildings.map((d) => [d.id, d]),
-    );
-    const terrains = new Map<DefId, TerrainDef>(
-      defs.terrains.map((d) => [d.id, d]),
-    );
-    const techs = new Map<DefId, TechDef>(
-      defs.techs.map((d) => [d.id, d]),
-    );
-    const civs = new Map<DefId, CivDef>(
-      defs.civs.map((d) => [d.id, d]),
-    );
+    const units = new Map<DefId, UnitDef>(defs.units.map((d) => [d.id, d]));
+    const buildings = new Map<DefId, BuildingDef>(defs.buildings.map((d) => [d.id, d]));
+    const terrains = new Map<DefId, TerrainDef>(defs.terrains.map((d) => [d.id, d]));
+    const techs = new Map<DefId, TechDef>(defs.techs.map((d) => [d.id, d]));
+    const civs = new Map<DefId, CivDef>(defs.civs.map((d) => [d.id, d]));
 
     const registry = new Registry(units, buildings, terrains, techs, civs);
     return Object.freeze(registry) as Registry;

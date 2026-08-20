@@ -13,15 +13,9 @@ export type GameEvent =
   | { kind: "TurnEnded"; turn: number; activePlayerId: PlayerId | null };
 
 export interface CommandRejection {
-  readonly code:
-    | "malformed"
-    | "not_your_turn"
-    | "unknown_entity"
-    | "not_owner"
-    | "illegal";
+  readonly code: "malformed" | "not_your_turn" | "unknown_entity" | "not_owner" | "illegal";
   readonly message: string;
 }
 
 export type CommandResult =
-  | { ok: true; state: GameState; events: GameEvent[] }
-  | { ok: false; reason: CommandRejection };
+  { ok: true; state: GameState; events: GameEvent[] } | { ok: false; reason: CommandRejection };

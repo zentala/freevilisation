@@ -5,9 +5,5 @@
     "rootDir": "src"
   },
   "include": ["src"],
-  "references": [
-    { "path": "../engine" },
-    { "path": "../content" },
-    { "path": "../protocol" }
-  ]
+  "references": [{ "path": "../engine" }, { "path": "../content" }, { "path": "../protocol" }]
 }

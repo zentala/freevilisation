@@ -19,8 +19,18 @@ const EGYPT = "civ_egypt" as CivDefId;
 
 function makeTile(hexKey: HexKey, seq: number): Tile {
   return new Tile(
-    makeEntityId(seq), 0, hexKey, TERRAIN,
-    null, null, null, false, null, null, null, [],
+    makeEntityId(seq),
+    0,
+    hexKey,
+    TERRAIN,
+    null,
+    null,
+    null,
+    false,
+    null,
+    null,
+    null,
+    [],
   );
 }
 
@@ -34,8 +44,38 @@ function makeBaseState(): GameState {
     }
   }
 
-  const p1 = new Player(makeEntityId(10), 0, ROME, false, false, 0, 0, [], [], 0, 0, null, true, null);
-  const p2 = new Player(makeEntityId(11), 0, EGYPT, false, false, 0, 0, [], [], 0, 0, null, true, null);
+  const p1 = new Player(
+    makeEntityId(10),
+    0,
+    ROME,
+    false,
+    false,
+    0,
+    0,
+    [],
+    [],
+    0,
+    0,
+    null,
+    true,
+    null,
+  );
+  const p2 = new Player(
+    makeEntityId(11),
+    0,
+    EGYPT,
+    false,
+    false,
+    0,
+    0,
+    [],
+    [],
+    0,
+    0,
+    null,
+    true,
+    null,
+  );
 
   const u1 = new Unit(U1, 0, WARRIOR, P1, "0,0" as HexKey, 10, 3, 3, [], 0, 0, false);
 

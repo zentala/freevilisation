@@ -20,8 +20,18 @@ const EGYPT = "civ_egypt" as CivDefId;
 
 function makeTile(hexKey: HexKey, seq: number): Tile {
   return new Tile(
-    makeEntityId(seq), 0, hexKey, TERRAIN,
-    null, null, null, false, null, null, null, [],
+    makeEntityId(seq),
+    0,
+    hexKey,
+    TERRAIN,
+    null,
+    null,
+    null,
+    false,
+    null,
+    null,
+    null,
+    [],
   );
 }
 
@@ -35,8 +45,38 @@ function makeBaseState(): GameState {
     }
   }
 
-  const p1 = new Player(makeEntityId(10), 0, ROME, false, false, 0, 0, [], [], 0, 0, null, true, null);
-  const p2 = new Player(makeEntityId(11), 0, EGYPT, false, false, 0, 0, [], [], 0, 0, null, true, null);
+  const p1 = new Player(
+    makeEntityId(10),
+    0,
+    ROME,
+    false,
+    false,
+    0,
+    0,
+    [],
+    [],
+    0,
+    0,
+    null,
+    true,
+    null,
+  );
+  const p2 = new Player(
+    makeEntityId(11),
+    0,
+    EGYPT,
+    false,
+    false,
+    0,
+    0,
+    [],
+    [],
+    0,
+    0,
+    null,
+    true,
+    null,
+  );
 
   const u1 = new Unit(U1, 0, WARRIOR, P1, "0,0" as HexKey, 10, 3, 3, [], 0, 0, false);
   const c1 = new City(C1, 0, P1, 0, "1,1" as HexKey, "Rome", 1, 0, 0, [], [], [], [], 0, 0, true);
@@ -85,28 +125,88 @@ describe("assertInvariants", () => {
 
   it("fails when unit has unknown ownerId", () => {
     const state = makeBaseState();
-    const u2 = new Unit("u2" as UnitId, 0, WARRIOR, "ghost" as PlayerId, "0,0" as HexKey, 10, 3, 3, [], 0, 0, false);
+    const u2 = new Unit(
+      "u2" as UnitId,
+      0,
+      WARRIOR,
+      "ghost" as PlayerId,
+      "0,0" as HexKey,
+      10,
+      3,
+      3,
+      [],
+      0,
+      0,
+      false,
+    );
     state.entities.units["u2" as UnitId] = u2;
     expect(() => assertInvariants(state)).toThrow(/unit .* has unknown ownerId/);
   });
 
   it("fails when unit references unknown tile", () => {
     const state = makeBaseState();
-    const u2 = new Unit("u2" as UnitId, 0, WARRIOR, P1, "99,99" as HexKey, 10, 3, 3, [], 0, 0, false);
+    const u2 = new Unit(
+      "u2" as UnitId,
+      0,
+      WARRIOR,
+      P1,
+      "99,99" as HexKey,
+      10,
+      3,
+      3,
+      [],
+      0,
+      0,
+      false,
+    );
     state.entities.units["u2" as UnitId] = u2;
     expect(() => assertInvariants(state)).toThrow(/unit .* references unknown tile/);
   });
 
   it("fails when city has unknown ownerId", () => {
     const state = makeBaseState();
-    const c2 = new City("c2" as CityId, 0, "ghost" as PlayerId, 0, "1,1" as HexKey, "Ghost", 1, 0, 0, [], [], [], [], 0, 0, false);
+    const c2 = new City(
+      "c2" as CityId,
+      0,
+      "ghost" as PlayerId,
+      0,
+      "1,1" as HexKey,
+      "Ghost",
+      1,
+      0,
+      0,
+      [],
+      [],
+      [],
+      [],
+      0,
+      0,
+      false,
+    );
     state.entities.cities["c2" as CityId] = c2;
     expect(() => assertInvariants(state)).toThrow(/city .* has unknown ownerId/);
   });
 
   it("fails when city references unknown tile", () => {
     const state = makeBaseState();
-    const c2 = new City("c2" as CityId, 0, P1, 0, "99,99" as HexKey, "Bad", 1, 0, 0, [], [], [], [], 0, 0, false);
+    const c2 = new City(
+      "c2" as CityId,
+      0,
+      P1,
+      0,
+      "99,99" as HexKey,
+      "Bad",
+      1,
+      0,
+      0,
+      [],
+      [],
+      [],
+      [],
+      0,
+      0,
+      false,
+    );
     state.entities.cities["c2" as CityId] = c2;
     expect(() => assertInvariants(state)).toThrow(/city .* references unknown tile/);
   });

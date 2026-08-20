@@ -1,14 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { AxialCoord } from "./coords.js";
-import {
-  AXIAL_DIRECTIONS,
-  neighbor,
-  neighbors,
-  distance,
-  ring,
-  range,
-  line,
-} from "./hex-math.js";
+import { AXIAL_DIRECTIONS, neighbor, neighbors, distance, ring, range, line } from "./hex-math.js";
 
 const O: AxialCoord = { q: 0, r: 0 };
 
@@ -131,8 +123,14 @@ describe("hex-math", () => {
         [O, { q: 3, r: -3 }],
         [O, { q: 2, r: 1 }],
         [O, { q: 0, r: 5 }],
-        [{ q: -1, r: -1 }, { q: 2, r: -3 }],
-        [{ q: 5, r: -2 }, { q: -3, r: 4 }],
+        [
+          { q: -1, r: -1 },
+          { q: 2, r: -3 },
+        ],
+        [
+          { q: 5, r: -2 },
+          { q: -3, r: 4 },
+        ],
       ];
       for (const [a, b] of pairs) {
         expect(line(a, b).length).toBe(distance(a, b) + 1);
@@ -144,7 +142,10 @@ describe("hex-math", () => {
         [O, { q: 3, r: -3 }],
         [O, { q: 2, r: 1 }],
         [O, { q: 0, r: 5 }],
-        [{ q: -1, r: -1 }, { q: 2, r: -3 }],
+        [
+          { q: -1, r: -1 },
+          { q: 2, r: -3 },
+        ],
       ];
       for (const [a, b] of pairs) {
         const l = line(a, b);

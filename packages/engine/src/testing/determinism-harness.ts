@@ -28,10 +28,7 @@ export interface DeterminismRun {
   readonly events: GameEvent[];
 }
 
-export function replay(
-  makeState: () => GameState,
-  commands: Command[],
-): DeterminismRun {
+export function replay(makeState: () => GameState, commands: Command[]): DeterminismRun {
   const session = new GameSession(makeState());
   const allEvents: GameEvent[] = [];
   const stepHashes: string[] = [];
@@ -52,10 +49,7 @@ export function replay(
   };
 }
 
-export function assertDeterministic(
-  makeState: () => GameState,
-  commands: Command[],
-): void {
+export function assertDeterministic(makeState: () => GameState, commands: Command[]): void {
   const run1 = replay(makeState, commands);
   const run2 = replay(makeState, commands);
 
@@ -69,8 +63,6 @@ export function assertDeterministic(
   }
 
   if (run1.hash !== run2.hash) {
-    throw new Error(
-      `Determinism violated: final hash ${run1.hash} !== ${run2.hash}`,
-    );
+    throw new Error(`Determinism violated: final hash ${run1.hash} !== ${run2.hash}`);
   }
 }
