@@ -20,6 +20,7 @@ export type CivDefId = DefId<"civ">;
 export type PolicyDefId = DefId<"policy">;
 
 export type HexKey = Brand<string, "HexKey">;
+export type ChunkKey = Brand<string, "ChunkKey">;
 
 /**
  * Builds an entity id from a sequence number owned by the caller.

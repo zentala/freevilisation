@@ -15,6 +15,32 @@ export const AXIAL_DIRECTIONS: readonly AxialCoord[] = [
 ] as const;
 
 /**
+ * Optional context for east-west cylinder wrap.
+ * The world wraps on `q` only — never on `r`. A cylinder, not a torus.
+ */
+export interface WrapContext {
+  /** Whether east-west wrapping is active. */
+  readonly isWraparoundX: boolean;
+  /** Map width in hexes, must be > 0. */
+  readonly width: number;
+}
+
+/**
+ * Wraps a q coordinate into the range `[0, width)` using double-modulo.
+ *
+ * JavaScript's `%` keeps the sign of the dividend, so `-1 % 16` is `-1`,
+ * not `15`. The double-modulo fixes that.
+ *
+ * `width <= 0` throws.
+ */
+export function wrapQ(q: number, width: number): number {
+  if (width <= 0) {
+    throw new Error(`wrapQ width must be positive, got ${width}`);
+  }
+  return ((q % width) + width) % width;
+}
+
+/**
  * Returns the single neighbor of `c` in the given direction index.
  */
 export function neighbor(c: AxialCoord, direction: number): AxialCoord {
@@ -24,19 +50,53 @@ export function neighbor(c: AxialCoord, direction: number): AxialCoord {
 
 /**
  * Returns all 6 neighbors of `c` in `AXIAL_DIRECTIONS` order.
+ *
+ * When `wrap` is provided and `wrap.isWraparoundX` is true, each
+ * result's q is wrapped through `wrapQ`. North and south are hard edges —
+ * `r` is never wrapped.
  */
-export function neighbors(c: AxialCoord): AxialCoord[] {
-  return AXIAL_DIRECTIONS.map((d) => ({ q: c.q + d.q, r: c.r + d.r }));
+export function neighbors(c: AxialCoord, wrap?: WrapContext): AxialCoord[] {
+  if (!wrap?.isWraparoundX) {
+    return AXIAL_DIRECTIONS.map((d) => ({ q: c.q + d.q, r: c.r + d.r }));
+  }
+  return AXIAL_DIRECTIONS.map((d) => ({
+    q: wrapQ(c.q + d.q, wrap.width),
+    r: c.r + d.r,
+  }));
 }
 
 /**
  * Cube-distance between two axial coordinates.
  * Formula: (|dq| + |dq + dr| + |dr|) / 2
  */
-export function distance(a: AxialCoord, b: AxialCoord): number {
+function cubeDistance(a: AxialCoord, b: AxialCoord): number {
   const dq = a.q - b.q;
   const dr = a.r - b.r;
   return (Math.abs(dq) + Math.abs(dq + dr) + Math.abs(dr)) / 2;
+}
+
+/**
+ * Cube-distance between two axial coordinates.
+ * Formula: (|dq| + |dq + dr| + |dr|) / 2
+ */
+export function distance(a: AxialCoord, b: AxialCoord, wrap?: WrapContext): number {
+  if (!wrap?.isWraparoundX) {
+    return cubeDistance(a, b);
+  }
+  const dq = a.q - b.q;
+  const dr = a.r - b.r;
+  const d0 = (Math.abs(dq) + Math.abs(dq + dr) + Math.abs(dr)) / 2;
+  const d1 =
+    (Math.abs(dq - wrap.width) +
+      Math.abs(dq - wrap.width + dr) +
+      Math.abs(dr)) /
+    2;
+  const d2 =
+    (Math.abs(dq + wrap.width) +
+      Math.abs(dq + wrap.width + dr) +
+      Math.abs(dr)) /
+    2;
+  return Math.min(d0, d1, d2);
 }
 
 /**
@@ -132,11 +192,36 @@ export function range(center: AxialCoord, radius: number): AxialCoord[] {
  * Uses fractional cube interpolation and `cubeRound` to determine
  * each intermediate hex.  `line(a, a)` is `[a]`, and
  * `line(a, b).length === distance(a, b) + 1`.
+ *
+ * When `wrap` is provided and `wrap.isWraparoundX` is true, the target
+ * representative closest to `a` (of `b`, `b - width`, `b + width`) is
+ * chosen, interpolation runs towards that, and every produced q is wrapped.
  */
-export function line(a: AxialCoord, b: AxialCoord): AxialCoord[] {
-  const d = distance(a, b);
+export function line(
+  a: AxialCoord,
+  b: AxialCoord,
+  wrap?: WrapContext,
+): AxialCoord[] {
+  const d = distance(a, b, wrap);
   if (d === 0) {
     return [{ q: a.q, r: a.r }];
+  }
+
+  let target = b;
+  if (wrap?.isWraparoundX) {
+    const candidates: AxialCoord[] = [
+      b,
+      { q: b.q - wrap.width, r: b.r },
+      { q: b.q + wrap.width, r: b.r },
+    ];
+    let bestDist = Infinity;
+    for (const cand of candidates) {
+      const dist = cubeDistance(a, cand);
+      if (dist < bestDist) {
+        bestDist = dist;
+        target = cand;
+      }
+    }
   }
 
   const results: AxialCoord[] = [];
@@ -145,12 +230,17 @@ export function line(a: AxialCoord, b: AxialCoord): AxialCoord[] {
     const t = i / n;
     // Interpolate in cube space: s = -q - r
     const aS = -a.q - a.r;
-    const bS = -b.q - b.r;
-    const fq = a.q + (b.q - a.q) * t;
-    const fr = a.r + (b.r - a.r) * t;
+    const bS = -target.q - target.r;
+    const fq = a.q + (target.q - a.q) * t;
+    const fr = a.r + (target.r - a.r) * t;
     const fs = aS + (bS - aS) * t;
     // Nudge one axis to break ties on exact half-way hexes
-    results.push(cubeRound(fq + ROUNDING_BIAS, fr, fs));
+    const rounded = cubeRound(fq + ROUNDING_BIAS, fr, fs);
+    if (wrap?.isWraparoundX) {
+      results.push({ q: wrapQ(rounded.q, wrap.width), r: rounded.r });
+    } else {
+      results.push(rounded);
+    }
   }
   return results;
 }
