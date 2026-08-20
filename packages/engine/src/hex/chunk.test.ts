@@ -57,6 +57,24 @@ describe("chunk", () => {
         expect(toChunkKey(t)).toBe(key);
       }
     });
+
+    it("returns tiles in row-major order (origin chunk)", () => {
+      const tiles = chunkTiles(toChunkKey({ q: 0, r: 0 }));
+      expect(tiles[0]).toEqual({ q: 0, r: 0 });
+      expect(tiles[1]).toEqual({ q: 1, r: 0 });
+      expect(tiles[15]).toEqual({ q: 15, r: 0 });
+      expect(tiles[16]).toEqual({ q: 0, r: 1 });
+      expect(tiles[255]).toEqual({ q: 15, r: 15 });
+    });
+
+    it("returns tiles in row-major order (negative chunk)", () => {
+      const tiles = chunkTiles(toChunkKey({ q: -16, r: 0 }));
+      expect(tiles[0]).toEqual({ q: -16, r: 0 });
+      expect(tiles[1]).toEqual({ q: -15, r: 0 });
+      expect(tiles[15]).toEqual({ q: -1, r: 0 });
+      expect(tiles[16]).toEqual({ q: -16, r: 1 });
+      expect(tiles[255]).toEqual({ q: -1, r: 15 });
+    });
   });
 
   describe("chunksInRadius", () => {
@@ -66,8 +84,21 @@ describe("chunk", () => {
       expect(chunksInRadius(center, 0)).toHaveLength(1);
     });
 
+    it("radius 0 returns the exact chunk key", () => {
+      expect(chunksInRadius({ q: 30, r: -10 }, 0)).toEqual(["1,-1"]);
+    });
+
     it("radius 1 returns exactly 9 chunks", () => {
       expect(chunksInRadius(center, 1)).toHaveLength(9);
+    });
+
+    it("radius 1 returns exact keys in cr-ascending order", () => {
+      const result = chunksInRadius({ q: 30, r: -10 }, 1);
+      expect(result).toEqual([
+        "0,-2", "1,-2", "2,-2",
+        "0,-1", "1,-1", "2,-1",
+        "0,0", "1,0", "2,0",
+      ]);
     });
 
     it("radius 2 returns exactly 25 chunks", () => {

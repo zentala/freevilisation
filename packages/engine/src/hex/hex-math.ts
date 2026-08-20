@@ -69,7 +69,7 @@ export function neighbors(c: AxialCoord, wrap?: WrapContext): AxialCoord[] {
  * Cube-distance between two axial coordinates.
  * Formula: (|dq| + |dq + dr| + |dr|) / 2
  */
-export function cubeDistance(a: AxialCoord, b: AxialCoord): number {
+function cubeDistance(a: AxialCoord, b: AxialCoord): number {
   const dq = a.q - b.q;
   const dr = a.r - b.r;
   return (Math.abs(dq) + Math.abs(dq + dr) + Math.abs(dr)) / 2;
