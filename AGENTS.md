@@ -61,6 +61,37 @@ CI. Do not silence the warning with `ignore-workspace-root-check`.
 `pnpm run test`, or those imports fail with "Failed to resolve entry for
 package".
 
+## Testing
+
+- Test file basename must match its source file's basename:
+  `src/foo/Bar.ts` -> `tests/foo/Bar.test.ts` (per-file coverage gates key on this).
+- Coverage targets: pure functions (validators, normalizers, parsers) 100%;
+  business logic (services, commands, handlers) >=80%; UI components >=70%.
+- A regression test must FAIL when you manually re-apply the bug it claims to
+  cover. If it still passes with the bug restored, it is not testing the bug —
+  rewrite it to assert the actual observable property, not the absence of a
+  signal your method can't see anyway.
+- Do not defer tests to a final "write tests" task — write them alongside the
+  code in the same task. A final integration/E2E pass on top is fine.
+
+## TypeScript gotchas
+
+- `tsc --noEmit` at the repo root can fail even when a package's own bundler
+  build (esbuild/vite/tsup) passes — they run under different `tsconfig`
+  settings. Run the root typecheck too; a green package build proves nothing
+  about it.
+- If a module moves from `x.ts` to `x/index.ts` (or back), `tsc` never deletes
+  the orphaned `dist/x.js`, and Node's resolution can silently prefer the
+  stale sibling file over the new directory — no build error, just old code
+  running. `rm -rf dist` before the next build whenever a file becomes a
+  directory or vice versa.
+- Prefer `globalThis.x` over `global.x` in test code that might run outside
+  Node's global scope.
+- Comparing timestamps requires the same unit on both sides — an ISO-8601
+  string compared against Unix-ms with `>=` silently evaluates to `NaN >=
+  number` (always `false`), which looks like "no data" rather than a type
+  error. Normalize both sides to ms first.
+
 ## Commits
 
 Conventional Commits: `<type>(<scope>): <subject>`, subject ≤ 50 chars,
