@@ -1,6 +1,7 @@
 import { createPrng, type Prng, type TerrainDefId } from "@freevilisation/engine";
 import { generateLandmass } from "./stages/landmass.js";
 import { generateClimate } from "./stages/climate.js";
+import { generateRivers } from "./stages/rivers.js";
 import { MAP_SIZES, MAP_TYPE_PRESETS } from "./config.js";
 
 /** The four supported map shapes. */
@@ -50,6 +51,8 @@ export interface MapGenResult {
   readonly isLand: boolean[];
   /** Terrain definition id per tile, index-aligned with `elevation`. */
   readonly terrainDefId: TerrainDefId[];
+  /** River flag per tile, index-aligned with `elevation`. */
+  readonly hasRiver: boolean[];
 }
 
 /**
@@ -77,14 +80,21 @@ export function generateMap(
   progress(0);
   const landmass = generateLandmass(params, {
     prng: landmassPrng,
-    onProgress: (pct) => progress(Math.round(pct * 0.5)),
+    onProgress: (pct) => progress(Math.round(pct * 0.33)),
   });
-  progress(50);
+  progress(33);
 
   const climatePrng = root.fork("climate");
   const climate = generateClimate(params, landmass, {
     prng: climatePrng,
-    onProgress: (pct) => progress(50 + Math.round(pct * 0.5)),
+    onProgress: (pct) => progress(33 + Math.round(pct * 0.34)),
+  });
+  progress(67);
+
+  const riversPrng = root.fork("rivers");
+  const rivers = generateRivers(params, landmass, {
+    prng: riversPrng,
+    onProgress: (pct) => progress(67 + Math.round(pct * 0.33)),
   });
   progress(100);
 
@@ -98,5 +108,6 @@ export function generateMap(
     elevation: landmass.elevation,
     isLand: landmass.isLand,
     terrainDefId: climate.terrainDefId,
+    hasRiver: rivers.hasRiver,
   };
 }
