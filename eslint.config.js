@@ -68,18 +68,32 @@ export default tseslint.config(
   forbid("apps/client", WORKSPACE),
   forbid("apps/server", ["engine", "content", "protocol", "ai"]),
   {
-    files: ["packages/engine/**/*.ts"],
+    // Determinism bans. `mapgen` is here for the same reason `engine` is: a map
+    // is generated from a seed and must stay identical for that seed forever,
+    // so a clock read or a `Math.random` in here is as fatal as one in the
+    // engine. Without this block the rule in mapgen is honoured by habit, and
+    // `pnpm run lint` stays green while a seed quietly stops meaning one world.
+    files: ["packages/engine/**/*.ts", "packages/mapgen/**/*.ts"],
     rules: {
       "no-restricted-globals": [
         "error",
         { name: "Date", message: "Use seeded RNG / turn counters, not Date." },
-        { name: "window", message: "packages/engine must be DOM-free." },
-        { name: "document", message: "packages/engine must be DOM-free." },
-        { name: "fetch", message: "packages/engine must be network-free." },
-        { name: "WebSocket", message: "packages/engine must be network-free." },
+        { name: "window", message: "Deterministic packages must be DOM-free." },
+        {
+          name: "document",
+          message: "Deterministic packages must be DOM-free.",
+        },
+        {
+          name: "fetch",
+          message: "Deterministic packages must be network-free.",
+        },
+        {
+          name: "WebSocket",
+          message: "Deterministic packages must be network-free.",
+        },
         {
           name: "requestAnimationFrame",
-          message: "packages/engine must be DOM-free.",
+          message: "Deterministic packages must be DOM-free.",
         },
       ],
       "no-restricted-properties": [
@@ -92,7 +106,7 @@ export default tseslint.config(
         {
           object: "Date",
           property: "now",
-          message: "packages/engine must be deterministic — no clock reads.",
+          message: "Deterministic packages must not read the clock.",
         },
       ],
     },
