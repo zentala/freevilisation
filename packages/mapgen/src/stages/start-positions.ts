@@ -124,7 +124,14 @@ function selectCandidatePool(
     if (filtered.length >= numPlayers) return filtered;
     floor -= 1;
   }
-  return buildAllLandCandidates(landmass);
+  const allLand = buildAllLandCandidates(landmass);
+  if (allLand.length < numPlayers) {
+    throw new Error(
+      `Cannot place ${numPlayers} players on a map with ${allLand.length} land tiles; ` +
+        `place fewer players or use a larger map.`,
+    );
+  }
+  return allLand;
 }
 
 /** Chebyshev distance — consistent with resources.ts's spacing check. */

@@ -33,6 +33,20 @@ function runStartPositions(params: MapGenParams) {
   return { landmass, climate, resources, startPositions };
 }
 
+function minPairwiseDistance(positions: { q: number; r: number }[]): number {
+  let min = Infinity;
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+      const d = Math.max(
+        Math.abs(positions[i].q - positions[j].q),
+        Math.abs(positions[i].r - positions[j].r),
+      );
+      if (d < min) min = d;
+    }
+  }
+  return min;
+}
+
 describe("generateStartPositions", () => {
   it("determinism: same seed and params produce byte-identical startPositions", () => {
     const params = makeParams({ numPlayers: 4 });
@@ -83,5 +97,43 @@ describe("generateStartPositions", () => {
     const r1 = runStartPositions(makeParams({ seed: 7 }));
     const r2 = runStartPositions(makeParams({ seed: 8 }));
     expect(r1.startPositions.startPositions).not.toEqual(r2.startPositions.startPositions);
+  });
+
+  it("minimum pairwise Chebyshev distance has a floor", () => {
+    const params = makeParams({ mapSize: "standard", numPlayers: 4 });
+    const { startPositions } = runStartPositions(params);
+    const d = minPairwiseDistance(startPositions.startPositions);
+    expect(d).toBeGreaterThanOrEqual(2);
+  });
+
+  it("tiny pool: quality floor relaxation returns numPlayers when enough land tiles exist", () => {
+    const params = makeParams({ mapSize: "tiny", numPlayers: 2 });
+    const { startPositions } = runStartPositions(params);
+    expect(startPositions.startPositions.length).toBe(2);
+  });
+
+  it("impossible map: throws when fewer land tiles than players", () => {
+    const minimalLandmass = {
+      width: 5,
+      height: 5,
+      elevation: new Array(25),
+      isLand: new Array(25).fill(false),
+    };
+    const params: MapGenParams = {
+      seed: 12345,
+      mapType: "continents",
+      mapSize: "tiny",
+      numPlayers: 30,
+    };
+    expect(() =>
+      generateStartPositions(params, minimalLandmass, {
+        terrainDefId: new Array(25).fill(null) as any,
+      } as any, {
+        resourceDefId: new Array(25).fill(null) as any,
+      } as any, {
+        prng: createPrng(12345).fork("test"),
+        onProgress: () => {},
+      }),
+    ).toThrow("Cannot place 30 players on a map with");
   });
 });
