@@ -12,3 +12,6 @@ coverage/
 # opencode implementer feedback - harvested by oc-harvest, never committed
 FEEDBACK.md
 TASK.md
+
+# opencode run harness state - snapshots, logs, ledger. Never committed.
+.agents/
