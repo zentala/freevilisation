@@ -1,6 +1,7 @@
 import type { Prng, FeatureDefId, TerrainDefId } from "@freevilisation/engine";
 import { fractalNoise2D } from "../noise.js";
-import type { MapGenParams, StageContext, ClimateResult } from "../pipeline.js";
+import type { MapGenParams, StageContext } from "../pipeline.js";
+import type { ClimateResult } from "./climate.js";
 import { MAP_SIZES } from "../config.js";
 
 export const FEATURE = {
@@ -22,7 +23,7 @@ const FEATURE_VALID_TERRAINS: readonly TerrainDefId[][] = [
   ["terrain_plains" as TerrainDefId, "terrain_tundra" as TerrainDefId], // forest
   ["terrain_grassland" as TerrainDefId], // jungle — grassland only
   ["terrain_grassland" as TerrainDefId, "terrain_plains" as TerrainDefId], // marsh
-  ["terrain_snow" as TerrainDefId, "terrain_coast" as TerrainDefId], // ice
+  ["terrain_snow" as TerrainDefId], // ice — snow only; terrain_coast is always water
 ];
 
 export function generateFeatures(

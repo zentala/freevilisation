@@ -76,14 +76,13 @@ describe("generateFeatures", () => {
       if (features.featureDefId[i] !== null) {
         const terrain = climate.terrainDefId[i];
         const validTerrains: Record<string, string[]> = {
-          "terrain_plains": ["forest", "marsh"],
-          "terrain_tundra": ["forest"],
-          "terrain_grassland": ["jungle", "marsh"],
-          "terrain_snow": ["ice"],
-          "terrain_coast": ["ice"],
+          terrain_plains: ["forest", "marsh"],
+          terrain_tundra: ["forest"],
+          terrain_grassland: ["jungle", "marsh"],
+          terrain_snow: ["ice"],
         };
         const featureName = Object.entries(FEATURE).find(
-          ([, fid]) => fid === features.featureDefId[i]
+          ([, fid]) => fid === features.featureDefId[i],
         )?.[0];
         if (featureName && terrain) {
           expect(validTerrains[terrain]!.includes(featureName)).toBe(true);

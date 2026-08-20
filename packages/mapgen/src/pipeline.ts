@@ -1,4 +1,9 @@
-import { createPrng, type Prng, type TerrainDefId, type FeatureDefId } from "@freevilisation/engine";
+import {
+  createPrng,
+  type Prng,
+  type TerrainDefId,
+  type FeatureDefId,
+} from "@freevilisation/engine";
 import { generateLandmass } from "./stages/landmass.js";
 import { generateClimate } from "./stages/climate.js";
 import { generateRivers } from "./stages/rivers.js";
