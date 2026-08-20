@@ -80,3 +80,9 @@ export type { WrapContext } from "./hex/hex-math.js";
 export { wrapQ } from "./hex/hex-math.js";
 
 export { CHUNK_SIZE, toChunkKey, fromChunkKey, chunkTiles, chunksInRadius } from "./hex/chunk.js";
+
+export type { TileFactory } from "./hex/game-map.js";
+export { buildGameMap, getTile, hasTile, toWrapContext } from "./hex/game-map.js";
+
+export type { IsPassable, CostFn } from "./hex/graph.js";
+export { neighborsOf, edgeCost } from "./hex/graph.js";
