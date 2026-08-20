@@ -21,8 +21,18 @@ const EGYPT = "civ_egypt" as CivDefId;
 
 function makeTile(hexKey: HexKey, seq: number): Tile {
   return new Tile(
-    makeEntityId(seq), 0, hexKey, TERRAIN,
-    null, null, null, false, null, null, null, [],
+    makeEntityId(seq),
+    0,
+    hexKey,
+    TERRAIN,
+    null,
+    null,
+    null,
+    false,
+    null,
+    null,
+    null,
+    [],
   );
 }
 
@@ -36,8 +46,38 @@ function makeBaseState(): GameState {
     }
   }
 
-  const p1 = new Player(makeEntityId(10), 0, ROME, false, false, 0, 0, [], [], 0, 0, null, true, null);
-  const p2 = new Player(makeEntityId(11), 0, EGYPT, false, false, 0, 0, [], [], 0, 0, null, true, null);
+  const p1 = new Player(
+    makeEntityId(10),
+    0,
+    ROME,
+    false,
+    false,
+    0,
+    0,
+    [],
+    [],
+    0,
+    0,
+    null,
+    true,
+    null,
+  );
+  const p2 = new Player(
+    makeEntityId(11),
+    0,
+    EGYPT,
+    false,
+    false,
+    0,
+    0,
+    [],
+    [],
+    0,
+    0,
+    null,
+    true,
+    null,
+  );
 
   const u1 = new Unit(U1, 0, WARRIOR, P1, "0,0" as HexKey, 10, 3, 3, [], 0, 0, false);
   const u2 = new Unit(U2, 0, WARRIOR, P2, "2,2" as HexKey, 10, 3, 3, [], 0, 0, false);
@@ -71,7 +111,10 @@ describe("validate", () => {
   it("returns null for a valid MoveUnit", () => {
     const state = makeBaseState();
     const result = validate(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["1,0" as HexKey],
     });
     expect(result).toBeNull();
   });
@@ -102,7 +145,10 @@ describe("validate", () => {
   it("rejects unknown unit", () => {
     const state = makeBaseState();
     const result = validate(state, {
-      kind: "MoveUnit", playerId: P1, unitId: "nonexistent" as UnitId, path: ["1,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: "nonexistent" as UnitId,
+      path: ["1,0" as HexKey],
     });
     expect(result).not.toBeNull();
     expect(result!.code).toBe("unknown_entity");
@@ -128,7 +174,10 @@ describe("validate", () => {
   it("rejects unit owned by another player", () => {
     const state = makeBaseState();
     const result = validate(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U2, path: ["1,2" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U2,
+      path: ["1,2" as HexKey],
     });
     expect(result).not.toBeNull();
     expect(result!.code).toBe("not_owner");
@@ -139,7 +188,10 @@ describe("applyCommand — MoveUnit", () => {
   it("moves a unit and emits UnitMoved event", () => {
     const state = makeBaseState();
     const result = applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["1,0" as HexKey],
     });
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("expected ok");
@@ -155,7 +207,10 @@ describe("applyCommand — MoveUnit", () => {
     const state = makeBaseState();
     const origUnits = state.entities.units;
     applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["1,0" as HexKey],
     });
     expect(state.entities.units).toBe(origUnits);
     expect(state.entities.units[U1]!.coord).toBe("0,0");
@@ -164,7 +219,10 @@ describe("applyCommand — MoveUnit", () => {
   it("returns a new state object", () => {
     const state = makeBaseState();
     const result = applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["1,0" as HexKey],
     });
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("expected ok");
@@ -176,7 +234,10 @@ describe("applyCommand — FoundCity", () => {
   it("founds a city and emits CityFounded event", () => {
     const state = makeBaseState();
     const result = applyCommand(state, {
-      kind: "FoundCity", playerId: P1, unitId: U1, name: "Rome",
+      kind: "FoundCity",
+      playerId: P1,
+      unitId: U1,
+      name: "Rome",
     });
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("expected ok");
@@ -198,7 +259,10 @@ describe("applyCommand — FoundCity", () => {
   it("removes the founding unit", () => {
     const state = makeBaseState();
     const result = applyCommand(state, {
-      kind: "FoundCity", playerId: P1, unitId: U1, name: "Rome",
+      kind: "FoundCity",
+      playerId: P1,
+      unitId: U1,
+      name: "Rome",
     });
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("expected ok");
@@ -210,7 +274,10 @@ describe("applyCommand — FoundCity", () => {
     const state = makeBaseState();
     state.nextEntitySeq = 5;
     const result = applyCommand(state, {
-      kind: "FoundCity", playerId: P1, unitId: U1, name: "Rome",
+      kind: "FoundCity",
+      playerId: P1,
+      unitId: U1,
+      name: "Rome",
     });
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("expected ok");
@@ -220,7 +287,10 @@ describe("applyCommand — FoundCity", () => {
   it("rejects empty city name", () => {
     const state = makeBaseState();
     const result = applyCommand(state, {
-      kind: "FoundCity", playerId: P1, unitId: U1, name: "",
+      kind: "FoundCity",
+      playerId: P1,
+      unitId: U1,
+      name: "",
     });
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("expected rejection");
@@ -230,12 +300,29 @@ describe("applyCommand — FoundCity", () => {
   it("rejects founding city at location with existing city", () => {
     const state = makeBaseState();
     const city = new City(
-      makeEntityId(20), 0, P1, 0, "0,0" as HexKey, "Existing", 1,
-      0, 0, [], [], [], [], 0, 0, true,
+      makeEntityId(20),
+      0,
+      P1,
+      0,
+      "0,0" as HexKey,
+      "Existing",
+      1,
+      0,
+      0,
+      [],
+      [],
+      [],
+      [],
+      0,
+      0,
+      true,
     );
     state.entities.cities = { [city.id]: city };
     const result = applyCommand(state, {
-      kind: "FoundCity", playerId: P1, unitId: U1, name: "NewRome",
+      kind: "FoundCity",
+      playerId: P1,
+      unitId: U1,
+      name: "NewRome",
     });
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("expected rejection");
@@ -291,7 +378,10 @@ describe("applyCommand — rejections", () => {
   it("rejects MoveUnit with empty path", () => {
     const state = makeBaseState();
     const result = applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: [],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: [],
     });
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("expected rejection");
@@ -301,7 +391,10 @@ describe("applyCommand — rejections", () => {
   it("rejects MoveUnit to unknown tile", () => {
     const state = makeBaseState();
     const result = applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["99,99" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["99,99" as HexKey],
     });
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("expected rejection");
@@ -311,7 +404,9 @@ describe("applyCommand — rejections", () => {
   it("rejects MoveUnit exceeding available moves", () => {
     const state = makeBaseState();
     const result = applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1,
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
       path: ["1,0" as HexKey, "2,0" as HexKey, "2,1" as HexKey, "2,2" as HexKey],
     });
     expect(result.ok).toBe(false);
@@ -326,7 +421,10 @@ describe("applyCommand — immutability", () => {
     const origUnits = state.entities.units;
     const origCities = state.entities.cities;
     applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["1,0" as HexKey],
     });
     expect(state.entities.units).toBe(origUnits);
     expect(state.entities.cities).toBe(origCities);
@@ -337,7 +435,10 @@ describe("applyCommand — immutability", () => {
     const origUnits = state.entities.units;
     const origCities = state.entities.cities;
     applyCommand(state, {
-      kind: "FoundCity", playerId: P1, unitId: U1, name: "Rome",
+      kind: "FoundCity",
+      playerId: P1,
+      unitId: U1,
+      name: "Rome",
     });
     expect(state.entities.units).toBe(origUnits);
     expect(state.entities.cities).toBe(origCities);
@@ -358,7 +459,10 @@ describe("EndTurn — turn boundary", () => {
     let state = makeBaseState();
 
     const move1 = applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["1,0" as HexKey],
     });
     expect(move1.ok).toBe(true);
     if (!move1.ok) throw new Error("expected ok");
@@ -375,7 +479,10 @@ describe("EndTurn — turn boundary", () => {
     state = endP2.state;
 
     const move2 = applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["2,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["2,0" as HexKey],
     });
     expect(move2.ok).toBe(true);
     if (!move2.ok) throw new Error("expected ok");
@@ -387,7 +494,10 @@ describe("EndTurn — turn boundary", () => {
     let state = makeBaseState();
 
     const move1 = applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["1,0" as HexKey],
     });
     expect(move1.ok).toBe(true);
     if (!move1.ok) throw new Error("expected ok");

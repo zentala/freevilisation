@@ -31,13 +31,13 @@ pnpm install
 
 ### Scripts
 
-| Script | What it does |
-|---|---|
-| `pnpm build` | TypeScript project build (`tsc --build`) |
-| `pnpm typecheck` | Type-check all packages (`tsc --build`) |
-| `pnpm lint` | ESLint across the monorepo |
-| `pnpm test` | Run tests with Vitest |
-| `pnpm clean` | Clean TypeScript build output |
+| Script           | What it does                             |
+| ---------------- | ---------------------------------------- |
+| `pnpm build`     | TypeScript project build (`tsc --build`) |
+| `pnpm typecheck` | Type-check all packages (`tsc --build`)  |
+| `pnpm lint`      | ESLint across the monorepo               |
+| `pnpm test`      | Run tests with Vitest                    |
+| `pnpm clean`     | Clean TypeScript build output            |
 
 ## Architecture
 

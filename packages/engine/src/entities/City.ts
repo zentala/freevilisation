@@ -1,10 +1,4 @@
-import type {
-  EntityId,
-  HexKey,
-  PlayerId,
-  BuildingDefId,
-  WonderDefId,
-} from "../ids.js";
+import type { EntityId, HexKey, PlayerId, BuildingDefId, WonderDefId } from "../ids.js";
 import { Entity } from "./Entity.js";
 
 export class City extends Entity {

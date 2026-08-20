@@ -45,10 +45,10 @@ gitignored here) — read it, never commit to it from a worktree.
 This is a pnpm **workspace**, so an install at the repo root needs an explicit
 flag or pnpm refuses it:
 
-| Where the dependency belongs | Command |
-|---|---|
-| Repo root (tooling: eslint, typescript, vitest config) | `pnpm add -Dw <pkg>` |
-| One package | `pnpm --filter <pkg-name> add -D <pkg>` |
+| Where the dependency belongs                           | Command                                 |
+| ------------------------------------------------------ | --------------------------------------- |
+| Repo root (tooling: eslint, typescript, vitest config) | `pnpm add -Dw <pkg>`                    |
+| One package                                            | `pnpm --filter <pkg-name> add -D <pkg>` |
 
 Without `-w` at the root you get `ERR_PNPM_ADDING_TO_ROOT` and nothing is
 installed. The guard exists because a dependency added to the root is invisible

@@ -58,27 +58,71 @@ function makeNonTrivialState() {
 
   const unitId = makeEntityId(1) as unknown as UnitId;
   state.entities.units[unitId] = new Unit(
-    unitId, 0, "def_unit:warrior" as UnitDefId, playerId,
-    "0,0" as HexKey, 100, 2, 2, [], 0, 0, false,
+    unitId,
+    0,
+    "def_unit:warrior" as UnitDefId,
+    playerId,
+    "0,0" as HexKey,
+    100,
+    2,
+    2,
+    [],
+    0,
+    0,
+    false,
   );
 
   const cityId = makeEntityId(2) as unknown as CityId;
   state.entities.cities[cityId] = new City(
-    cityId, 0, playerId, 0, "1,1" as HexKey,
-    "Rome", 1, 0, 0, [], [], [], [], 100, 10, true,
+    cityId,
+    0,
+    playerId,
+    0,
+    "1,1" as HexKey,
+    "Rome",
+    1,
+    0,
+    0,
+    [],
+    [],
+    [],
+    [],
+    100,
+    10,
+    true,
   );
 
   // Real Tile instances, not object literals: a Tile derives its `ownerId`
   // from `ownerPlayer`, so a literal that sets one without the other builds a
   // state the domain model cannot represent, and no round-trip can reproduce it.
   state.map.tiles["0,0" as HexKey] = new Tile(
-    makeEntityId(3), 0, "0,0" as HexKey, "def_terrain:grassland" as never,
-    null, null, null, false, null, playerId, null, [],
+    makeEntityId(3),
+    0,
+    "0,0" as HexKey,
+    "def_terrain:grassland" as never,
+    null,
+    null,
+    null,
+    false,
+    null,
+    playerId,
+    null,
+    [],
   );
 
   state.map.tiles["1,1" as HexKey] = new Tile(
-    makeEntityId(4), 0, "1,1" as HexKey, "def_terrain:plains" as never,
-    null, null, null, true, null, playerId, null, [],
+    makeEntityId(4),
+    0,
+    "1,1" as HexKey,
+    "def_terrain:plains" as never,
+    null,
+    null,
+    null,
+    true,
+    null,
+    playerId,
+    null,
+    [],
   );
 
   return state;

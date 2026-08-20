@@ -52,16 +52,12 @@ export class EntityStore {
 
   atHex(coord: HexKey): Entity[] {
     const ids = this.spatialIndex.get(coord) ?? [];
-    return ids
-      .map((id) => this.byId.get(id))
-      .filter((e): e is Entity => e != null);
+    return ids.map((id) => this.byId.get(id)).filter((e): e is Entity => e != null);
   }
 
   ofOwner(playerId: PlayerId): Entity[] {
     const ids = this.byOwner.get(playerId);
     if (ids == null) return [];
-    return [...ids]
-      .map((id) => this.byId.get(id))
-      .filter((e): e is Entity => e != null);
+    return [...ids].map((id) => this.byId.get(id)).filter((e): e is Entity => e != null);
   }
 }

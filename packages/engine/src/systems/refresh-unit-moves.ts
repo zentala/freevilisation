@@ -3,12 +3,18 @@ import type { PlayerId } from "../ids.js";
 import type { GameEvent } from "../commands/types.js";
 import { Unit } from "../entities/Unit.js";
 
-export type TurnSystem = (state: GameState, playerId: PlayerId) => {
+export type TurnSystem = (
+  state: GameState,
+  playerId: PlayerId,
+) => {
   state: GameState;
   events: GameEvent[];
 };
 
-export function refreshUnitMoves(state: GameState, playerId: PlayerId): {
+export function refreshUnitMoves(
+  state: GameState,
+  playerId: PlayerId,
+): {
   state: GameState;
   events: GameEvent[];
 } {
@@ -23,9 +29,18 @@ export function refreshUnitMoves(state: GameState, playerId: PlayerId): {
   const nextUnits = { ...state.entities.units };
   for (const [id, unit] of unitEntries) {
     nextUnits[id as keyof typeof nextUnits] = new Unit(
-      unit.id, unit.createdTurn, unit.defId, unit.ownerId,
-      unit.coord, unit.hp, unit.movesMax, unit.movesMax,
-      unit.promotions, unit.experience, unit.fortifiedTurns, unit.isEmbarked,
+      unit.id,
+      unit.createdTurn,
+      unit.defId,
+      unit.ownerId,
+      unit.coord,
+      unit.hp,
+      unit.movesMax,
+      unit.movesMax,
+      unit.promotions,
+      unit.experience,
+      unit.fortifiedTurns,
+      unit.isEmbarked,
     );
   }
 

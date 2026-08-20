@@ -79,14 +79,29 @@ function handleMoveUnit(state: GameState, command: Command & { kind: "MoveUnit" 
   const to = command.path[command.path.length - 1]!;
 
   const movedUnit = new Unit(
-    unit.id, unit.createdTurn, unit.defId, unit.ownerId,
-    to, unit.hp, newMovesLeft, unit.movesMax,
-    unit.promotions, unit.experience, unit.fortifiedTurns, unit.isEmbarked,
+    unit.id,
+    unit.createdTurn,
+    unit.defId,
+    unit.ownerId,
+    to,
+    unit.hp,
+    newMovesLeft,
+    unit.movesMax,
+    unit.promotions,
+    unit.experience,
+    unit.fortifiedTurns,
+    unit.isEmbarked,
   );
 
   const nextUnits = { ...state.entities.units, [command.unitId]: movedUnit };
   const events: GameEvent[] = [
-    { kind: "UnitMoved", unitId: command.unitId, from: prevCoord, to, movesRemaining: newMovesLeft },
+    {
+      kind: "UnitMoved",
+      unitId: command.unitId,
+      from: prevCoord,
+      to,
+      movesRemaining: newMovesLeft,
+    },
   ];
 
   return {
@@ -96,7 +111,10 @@ function handleMoveUnit(state: GameState, command: Command & { kind: "MoveUnit" 
   };
 }
 
-function handleFoundCity(state: GameState, command: Command & { kind: "FoundCity" }): CommandResult {
+function handleFoundCity(
+  state: GameState,
+  command: Command & { kind: "FoundCity" },
+): CommandResult {
   const unit = state.entities.units[command.unitId]!;
   const cityId = makeEntityId(state.nextEntitySeq) as CityId;
   const isFirstCity = !Object.values(state.entities.cities).some(
@@ -104,9 +122,22 @@ function handleFoundCity(state: GameState, command: Command & { kind: "FoundCity
   );
 
   const city = new City(
-    cityId, state.turn, command.playerId, state.turn,
-    unit.coord, command.name, 1, 0, 0,
-    [], [], [], [], 0, 0, isFirstCity,
+    cityId,
+    state.turn,
+    command.playerId,
+    state.turn,
+    unit.coord,
+    command.name,
+    1,
+    0,
+    0,
+    [],
+    [],
+    [],
+    [],
+    0,
+    0,
+    isFirstCity,
   );
 
   const { [command.unitId]: _removed, ...remainingUnits } = state.entities.units;
@@ -133,7 +164,11 @@ function handleEndTurn(state: GameState, command: Command & { kind: "EndTurn" })
   const nextTurn = wrap ? state.turn + 1 : state.turn;
   const nextActivePlayerId = state.playerOrder[nextIndex] ?? null;
 
-  const turnEndedEvent: GameEvent = { kind: "TurnEnded", turn: state.turn, activePlayerId: command.playerId };
+  const turnEndedEvent: GameEvent = {
+    kind: "TurnEnded",
+    turn: state.turn,
+    activePlayerId: command.playerId,
+  };
 
   const resolutionState: GameState = {
     ...state,

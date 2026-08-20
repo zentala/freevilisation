@@ -1,11 +1,4 @@
-import type {
-  EntityId,
-  PlayerId,
-  CivDefId,
-  CityId,
-  TechDefId,
-  PolicyDefId,
-} from "../ids.js";
+import type { EntityId, PlayerId, CivDefId, CityId, TechDefId, PolicyDefId } from "../ids.js";
 import { Entity } from "./Entity.js";
 
 export class Player extends Entity {

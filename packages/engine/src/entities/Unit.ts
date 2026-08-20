@@ -1,10 +1,4 @@
-import type {
-  EntityId,
-  HexKey,
-  UnitDefId,
-  PlayerId,
-  DefId,
-} from "../ids.js";
+import type { EntityId, HexKey, UnitDefId, PlayerId, DefId } from "../ids.js";
 import { Entity } from "./Entity.js";
 
 export class Unit extends Entity {

@@ -30,10 +30,7 @@ function forbid(dir, allowed) {
   ];
   if (banned.length > 0) {
     patterns.unshift({
-      group: banned.flatMap((p) => [
-        `@freevilisation/${p}`,
-        `@freevilisation/${p}/*`,
-      ]),
+      group: banned.flatMap((p) => [`@freevilisation/${p}`, `@freevilisation/${p}/*`]),
       message: `${dir} must not depend on that package — see ARCHITECTURE.md.`,
     });
   }

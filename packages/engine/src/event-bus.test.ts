@@ -4,7 +4,13 @@ import type { GameEvent } from "./commands/types.js";
 import type { HexKey, UnitId } from "./ids.js";
 
 function moved(from: string, to: string): GameEvent {
-  return { kind: "UnitMoved", unitId: "u1" as UnitId, from: from as HexKey, to: to as HexKey, movesRemaining: 0 };
+  return {
+    kind: "UnitMoved",
+    unitId: "u1" as UnitId,
+    from: from as HexKey,
+    to: to as HexKey,
+    movesRemaining: 0,
+  };
 }
 
 describe("EventBus", () => {

@@ -22,25 +22,12 @@ export type {
 
 export { makeEntityId } from "./ids.js";
 
-export {
-  Entity,
-  Tile,
-  Unit,
-  City,
-  Building,
-  Player,
-} from "./entities/index.js";
+export { Entity, Tile, Unit, City, Building, Player } from "./entities/index.js";
 
 export type { EntityType, ComponentKey } from "./entities/index.js";
 
 export { Registry } from "./registry.js";
-export type {
-  UnitDef,
-  BuildingDef,
-  TerrainDef,
-  TechDef,
-  CivDef,
-} from "./registry.js";
+export type { UnitDef, BuildingDef, TerrainDef, TechDef, CivDef } from "./registry.js";
 
 export { EntityStore } from "./entity-store.js";
 
@@ -60,12 +47,7 @@ export type {
 export { serialize, deserialize, stateHash } from "./serialization.js";
 
 export { validate, applyCommand } from "./commands/pipeline.js";
-export type {
-  Command,
-  GameEvent,
-  CommandResult,
-  CommandRejection,
-} from "./commands/types.js";
+export type { Command, GameEvent, CommandResult, CommandRejection } from "./commands/types.js";
 
 export { EventBus } from "./event-bus.js";
 export type { EventListener } from "./event-bus.js";
@@ -81,12 +63,7 @@ export type { DeterminismRun } from "./testing/determinism-harness.js";
 export { assertInvariants } from "./invariants.js";
 
 export type { AxialCoord } from "./hex/coords.js";
-export {
-  cubeS,
-  toHexKey,
-  fromHexKey,
-  coordsEqual,
-} from "./hex/coords.js";
+export { cubeS, toHexKey, fromHexKey, coordsEqual } from "./hex/coords.js";
 
 export {
   AXIAL_DIRECTIONS,
