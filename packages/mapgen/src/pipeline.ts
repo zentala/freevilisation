@@ -1,5 +1,6 @@
-import { createPrng, type Prng } from "@freevilisation/engine";
+import { createPrng, type Prng, type TerrainDefId } from "@freevilisation/engine";
 import { generateLandmass } from "./stages/landmass.js";
+import { generateClimate } from "./stages/climate.js";
 import { MAP_SIZES, MAP_TYPE_PRESETS } from "./config.js";
 
 /** The four supported map shapes. */
@@ -47,13 +48,15 @@ export interface MapGenResult {
   readonly elevation: number[];
   /** Land flag per tile, index-aligned with `elevation`. */
   readonly isLand: boolean[];
+  /** Terrain definition id per tile, index-aligned with `elevation`. */
+  readonly terrainDefId: TerrainDefId[];
 }
 
 /**
  * Generate a complete map from parameters.
  *
  * Synchronous — the Web Worker wrapping is the host's responsibility (E32).
- * Currently runs only the landmass stage; later stages will be inserted here.
+ * Runs landmass then climate; later stages will be inserted here.
  */
 export function generateMap(
   params: MapGenParams,
@@ -74,7 +77,14 @@ export function generateMap(
   progress(0);
   const landmass = generateLandmass(params, {
     prng: landmassPrng,
-    onProgress: progress,
+    onProgress: (pct) => progress(Math.round(pct * 0.5)),
+  });
+  progress(50);
+
+  const climatePrng = root.fork("climate");
+  const climate = generateClimate(params, landmass, {
+    prng: climatePrng,
+    onProgress: (pct) => progress(50 + Math.round(pct * 0.5)),
   });
   progress(100);
 
@@ -87,5 +97,6 @@ export function generateMap(
     isWraparoundX: true,
     elevation: landmass.elevation,
     isLand: landmass.isLand,
+    terrainDefId: climate.terrainDefId,
   };
 }
