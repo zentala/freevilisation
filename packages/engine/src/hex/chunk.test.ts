@@ -2,13 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { AxialCoord } from "./coords.js";
 import type { ChunkKey } from "../ids.js";
 import { coordsEqual, toHexKey } from "./coords.js";
-import {
-  CHUNK_SIZE,
-  toChunkKey,
-  fromChunkKey,
-  chunkTiles,
-  chunksInRadius,
-} from "./chunk.js";
+import { CHUNK_SIZE, toChunkKey, fromChunkKey, chunkTiles, chunksInRadius } from "./chunk.js";
 
 describe("chunk", () => {
   describe("toChunkKey / fromChunkKey", () => {
@@ -94,11 +88,7 @@ describe("chunk", () => {
 
     it("radius 1 returns exact keys in cr-ascending order", () => {
       const result = chunksInRadius({ q: 30, r: -10 }, 1);
-      expect(result).toEqual([
-        "0,-2", "1,-2", "2,-2",
-        "0,-1", "1,-1", "2,-1",
-        "0,0", "1,0", "2,0",
-      ]);
+      expect(result).toEqual(["0,-2", "1,-2", "2,-2", "0,-1", "1,-1", "2,-1", "0,0", "1,0", "2,0"]);
     });
 
     it("radius 2 returns exactly 25 chunks", () => {

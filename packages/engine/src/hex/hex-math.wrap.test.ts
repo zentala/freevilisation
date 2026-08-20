@@ -1,12 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { AxialCoord } from "./coords.js";
-import {
-  neighbors,
-  distance,
-  line,
-  wrapQ,
-  type WrapContext,
-} from "./hex-math.js";
+import { neighbors, distance, line, wrapQ, type WrapContext } from "./hex-math.js";
 
 const O: AxialCoord = { q: 0, r: 0 };
 
@@ -40,9 +34,18 @@ describe("wrap", () => {
     const pairs: [AxialCoord, AxialCoord][] = [
       [O, { q: 3, r: -3 }],
       [O, { q: 2, r: 1 }],
-      [{ q: 1, r: 0 }, { q: 19, r: 0 }],
-      [{ q: 18, r: 0 }, { q: 1, r: 0 }],
-      [{ q: 0, r: 5 }, { q: 19, r: 5 }],
+      [
+        { q: 1, r: 0 },
+        { q: 19, r: 0 },
+      ],
+      [
+        { q: 18, r: 0 },
+        { q: 1, r: 0 },
+      ],
+      [
+        { q: 0, r: 5 },
+        { q: 19, r: 5 },
+      ],
     ];
 
     it("neighbors returns same result with no arg, false wrap, and WRAP for far-from-seam coords", () => {
@@ -131,12 +134,30 @@ describe("wrap", () => {
 
     it("distance across seam never exceeds unwrapped distance (6 pairs)", () => {
       const pairs: [AxialCoord, AxialCoord][] = [
-        [{ q: 1, r: 0 }, { q: 19, r: 0 }],
-        [{ q: 0, r: 0 }, { q: 19, r: 0 }],
-        [{ q: 2, r: 3 }, { q: 18, r: 3 }],
-        [{ q: 19, r: 0 }, { q: 0, r: 0 }],
-        [{ q: 18, r: 5 }, { q: 1, r: 5 }],
-        [{ q: 0, r: -2 }, { q: 19, r: -2 }],
+        [
+          { q: 1, r: 0 },
+          { q: 19, r: 0 },
+        ],
+        [
+          { q: 0, r: 0 },
+          { q: 19, r: 0 },
+        ],
+        [
+          { q: 2, r: 3 },
+          { q: 18, r: 3 },
+        ],
+        [
+          { q: 19, r: 0 },
+          { q: 0, r: 0 },
+        ],
+        [
+          { q: 18, r: 5 },
+          { q: 1, r: 5 },
+        ],
+        [
+          { q: 0, r: -2 },
+          { q: 19, r: -2 },
+        ],
       ];
       for (const [a, b] of pairs) {
         expect(distance(a, b, WRAP)).toBeLessThanOrEqual(distance(a, b));

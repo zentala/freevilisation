@@ -83,7 +83,10 @@ describe("hex-reference", () => {
     [O, { q: 2, r: -2 }],
     [O, { q: 2, r: 1 }],
     [O, { q: 3, r: -3 }],
-    [{ q: -1, r: -1 }, { q: 2, r: -3 }],
+    [
+      { q: -1, r: -1 },
+      { q: 2, r: -3 },
+    ],
   ];
 
   const tiePair: [AxialCoord, AxialCoord] = [O, { q: 1, r: -3 }];
@@ -99,22 +102,16 @@ describe("hex-reference", () => {
   }
 
   describe("distance", () => {
-    it.each(distanceCases)(
-      "$name has distance $expected",
-      ({ a, b, expected }) => {
-        expect(distance(a, b)).toBe(expected);
-        expect(distance(b, a)).toBe(expected);
-      },
-    );
+    it.each(distanceCases)("$name has distance $expected", ({ a, b, expected }) => {
+      expect(distance(a, b)).toBe(expected);
+      expect(distance(b, a)).toBe(expected);
+    });
   });
 
   describe("ring", () => {
-    it.each(ringCounts)(
-      "ring(origin, %i) returns %i hexes (6n for n > 0)",
-      (radius, count) => {
-        expect(ring(O, radius)).toHaveLength(count);
-      },
-    );
+    it.each(ringCounts)("ring(origin, %i) returns %i hexes (6n for n > 0)", (radius, count) => {
+      expect(ring(O, radius)).toHaveLength(count);
+    });
 
     it("ring((3,-2), 1) matches the reference coordinate set", () => {
       expect(keysOf(ring(ringCenter, 1))).toEqual(keysOf(ring1));
@@ -126,12 +123,9 @@ describe("hex-reference", () => {
   });
 
   describe("range", () => {
-    it.each(rangeCounts)(
-      "range(origin, %i) returns %i hexes (3n(n+1) + 1)",
-      (radius, count) => {
-        expect(range(O, radius)).toHaveLength(count);
-      },
-    );
+    it.each(rangeCounts)("range(origin, %i) returns %i hexes (3n(n+1) + 1)", (radius, count) => {
+      expect(range(O, radius)).toHaveLength(count);
+    });
 
     it("range(c, n) is the duplicate-free union of rings 0..n", () => {
       for (const center of [O, ringCenter]) {

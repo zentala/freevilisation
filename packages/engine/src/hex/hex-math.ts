@@ -86,16 +86,8 @@ export function distance(a: AxialCoord, b: AxialCoord, wrap?: WrapContext): numb
   const dq = a.q - b.q;
   const dr = a.r - b.r;
   const d0 = (Math.abs(dq) + Math.abs(dq + dr) + Math.abs(dr)) / 2;
-  const d1 =
-    (Math.abs(dq - wrap.width) +
-      Math.abs(dq - wrap.width + dr) +
-      Math.abs(dr)) /
-    2;
-  const d2 =
-    (Math.abs(dq + wrap.width) +
-      Math.abs(dq + wrap.width + dr) +
-      Math.abs(dr)) /
-    2;
+  const d1 = (Math.abs(dq - wrap.width) + Math.abs(dq - wrap.width + dr) + Math.abs(dr)) / 2;
+  const d2 = (Math.abs(dq + wrap.width) + Math.abs(dq + wrap.width + dr) + Math.abs(dr)) / 2;
   return Math.min(d0, d1, d2);
 }
 
@@ -197,11 +189,7 @@ export function range(center: AxialCoord, radius: number): AxialCoord[] {
  * representative closest to `a` (of `b`, `b - width`, `b + width`) is
  * chosen, interpolation runs towards that, and every produced q is wrapped.
  */
-export function line(
-  a: AxialCoord,
-  b: AxialCoord,
-  wrap?: WrapContext,
-): AxialCoord[] {
+export function line(a: AxialCoord, b: AxialCoord, wrap?: WrapContext): AxialCoord[] {
   const d = distance(a, b, wrap);
   if (d === 0) {
     return [{ q: a.q, r: a.r }];

@@ -79,10 +79,4 @@ export {
 export type { WrapContext } from "./hex/hex-math.js";
 export { wrapQ } from "./hex/hex-math.js";
 
-export {
-  CHUNK_SIZE,
-  toChunkKey,
-  fromChunkKey,
-  chunkTiles,
-  chunksInRadius,
-} from "./hex/chunk.js";
+export { CHUNK_SIZE, toChunkKey, fromChunkKey, chunkTiles, chunksInRadius } from "./hex/chunk.js";
