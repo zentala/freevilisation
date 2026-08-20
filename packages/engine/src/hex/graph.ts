@@ -22,11 +22,7 @@ export type CostFn = (a: AxialCoord, b: AxialCoord) => number;
  * otherwise wraparound map) are simply absent from the result — this
  * function never throws for out-of-range coordinates.
  */
-export function neighborsOf(
-  coord: AxialCoord,
-  map: GameMap,
-  isPassable: IsPassable,
-): AxialCoord[] {
+export function neighborsOf(coord: AxialCoord, map: GameMap, isPassable: IsPassable): AxialCoord[] {
   const wrap = toWrapContext(map);
   const candidates = neighbors(coord, wrap);
   const result: AxialCoord[] = [];
@@ -46,10 +42,6 @@ export function neighborsOf(
  * calling arbitrary cost functions directly. Does not validate that `a`
  * and `b` are neighbours — that is the caller's responsibility.
  */
-export function edgeCost(
-  a: AxialCoord,
-  b: AxialCoord,
-  costFn: CostFn,
-): number {
+export function edgeCost(a: AxialCoord, b: AxialCoord, costFn: CostFn): number {
   return costFn(a, b);
 }

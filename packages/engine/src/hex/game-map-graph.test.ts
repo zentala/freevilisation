@@ -49,9 +49,7 @@ describe("game-map + graph integration", () => {
 
     it("does not include {q:0,r:2} as neighbour of {q:4,r:2}", () => {
       const result = neighborsOf({ q: 4, r: 2 }, map, allPassable);
-      const hasWrapped = result.some(
-        (c) => c.q === 0 && c.r === 2,
-      );
+      const hasWrapped = result.some((c) => c.q === 0 && c.r === 2);
       expect(hasWrapped).toBe(false);
     });
   });
@@ -74,9 +72,7 @@ describe("game-map + graph integration", () => {
       const allResult = neighborsOf({ q: 1, r: 2 }, map, allPassable);
       const filtered = neighborsOf({ q: 1, r: 2 }, map, isPassable);
 
-      const expected = allResult.filter(
-        (c) => !coordsEqual(c, blockedCoord),
-      );
+      const expected = allResult.filter((c) => !coordsEqual(c, blockedCoord));
       expect(filtered).toEqual(expected);
     });
 

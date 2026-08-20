@@ -64,9 +64,7 @@ describe("neighborsOf", () => {
     const filtered = neighborsOf(center, map, isPassable);
 
     expect(filtered).toHaveLength(allResult.length - 1);
-    const expected = allResult.filter(
-      (c) => !coordsEqual(c, blockedCoord),
-    );
+    const expected = allResult.filter((c) => !coordsEqual(c, blockedCoord));
     expect(filtered).toEqual(expected);
   });
 
