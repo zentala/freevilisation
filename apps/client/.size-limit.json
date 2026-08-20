@@ -1,0 +1,12 @@
+[
+  {
+    "name": "client JS bundle",
+    "path": "dist/assets/*.js",
+    "limit": "320 KB"
+  },
+  {
+    "name": "client CSS bundle",
+    "path": "dist/assets/*.css",
+    "limit": "10 KB"
+  }
+]

@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --build && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --build"
+    "typecheck": "tsc --build",
+    "build:check-size": "pnpm run build && size-limit"
   },
   "dependencies": {
     "@freevilisation/ai": "workspace:*",
@@ -29,6 +30,8 @@
     "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "^4.0.0",
+    "size-limit": "^10.0.0",
+    "@size-limit/file": "^10.0.0",
     "vite": "^6.0.0"
   }
 }
