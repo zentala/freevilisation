@@ -56,7 +56,7 @@ export interface MapGenResult {
  * Generate a complete map from parameters.
  *
  * Synchronous — the Web Worker wrapping is the host's responsibility (E32).
- * Currently runs only the landmass stage; later stages will be inserted here.
+ * Runs landmass then climate; later stages will be inserted here.
  */
 export function generateMap(
   params: MapGenParams,
