@@ -48,7 +48,6 @@ jobs:
 
   commitlint:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,7 +58,23 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+      # Runs on pull_request AND on direct pushes to main, so a commit that
+      # never went through a PR is still checked.
+      - name: Lint commit messages
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            from="$PR_BASE"; to="$PR_HEAD"
+          else
+            from="$PUSH_BEFORE"; to="$PUSH_AFTER"
+            case "$from" in ""|0000000000000000000000000000000000000000) from="$to~1" ;; esac
+          fi
+          pnpm exec commitlint --from "$from" --to "$to" --verbose
 
   test:
     runs-on: ubuntu-latest
@@ -71,7 +86,26 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Packages resolve each other through their gitignored dist/, so the
+      # workspace must be built before vitest can import them.
+      - run: pnpm run build
       - run: pnpm run test
+
+  # ADR-013 names determinism a required, PR-blocking check of its own. Today
+  # it runs the engine's replay harness; E04-W4's golden-seed maps and E34's
+  # long-game replays land in this same job.
+  determinism:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm run test:determinism
 
   coverage:
     runs-on: ubuntu-latest
@@ -83,6 +117,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
       - run: pnpm run coverage
 
   size-limit:
