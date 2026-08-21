@@ -508,6 +508,15 @@ describe("generateStartPositions", () => {
     ]);
   });
 
+  it("counts the tile directly to the right as a neighbour, not the one below it", () => {
+    // A one-row strip, so the vertical offsets are always out of bounds. The
+    // resource at q=2 lifts q=1 to quality 1, the only tile clearing the floor,
+    // so it takes the single slot. Turn the rightward offset diagonal and nothing
+    // scores at all: the floor falls to 0 and the pick lands on q=0 instead.
+    const positions = placeOnPaintedMap(3, 1, [], [{ q: 2, r: 0 }], 1, [0]);
+    expect(positions).toEqual([{ q: 1, r: 0 }]);
+  });
+
   it("ranks plains below grassland: three grassland tiles keep the floor at 3", () => {
     // Grassland clears the initial floor of 3 and plains does not, so three
     // grassland tiles are the whole pool and the far corners never come up.
