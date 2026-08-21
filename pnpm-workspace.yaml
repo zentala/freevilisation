@@ -5,6 +5,9 @@ packages:
 allowBuilds:
   esbuild: true
   workerd: true
+# Packages exempt from the release-age quarantine below. Both settings must
+# stay together: an exclude list without minimumReleaseAge does nothing.
+minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
   - "@cloudflare/workers-types@5.20260819.1"
   - miniflare@5.20260815.0-alpha

@@ -111,4 +111,13 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // House rule from CLAUDE.md: a file over 250 lines is a signal to split.
+    // It was a convention nobody enforced, so two files reached 564 and 590
+    // lines. Counting raw lines keeps the rule and `wc -l` in agreement.
+    files: ["packages/**/*.ts", "packages/**/*.tsx", "apps/**/*.ts", "apps/**/*.tsx"],
+    rules: {
+      "max-lines": ["error", { max: 250, skipBlankLines: false, skipComments: false }],
+    },
+  },
 );
