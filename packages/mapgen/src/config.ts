@@ -1,3 +1,4 @@
+import type { WrapContext } from "@freevilisation/engine";
 import type { MapType, MapSize } from "./pipeline.js";
 
 /** Map size presets — width and height in tiles. */
@@ -27,6 +28,13 @@ export interface MapTypePreset {
   readonly lacunarity: number;
   /** Elevation threshold above which a tile is land. */
   readonly landThreshold: number;
+  /**
+   * Whether this map type wraps east-west, joining the two vertical edges
+   * into a cylinder. `continents`, `pangaea` and `islands` model a full
+   * globe and wrap. `archipelago` models a bounded rectangle of scattered
+   * islands rather than a whole world, so it stays flat.
+   */
+  readonly isWraparoundX: boolean;
 }
 
 /** Per-map-type noise presets. */
@@ -40,6 +48,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     landThreshold: 0.52,
+    isWraparoundX: true,
   },
   pangaea: {
     continentFrequency: 1,
@@ -50,6 +59,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     landThreshold: 0.45,
+    isWraparoundX: true,
   },
   archipelago: {
     continentFrequency: 8,
@@ -60,6 +70,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     landThreshold: 0.58,
+    isWraparoundX: false,
   },
   islands: {
     continentFrequency: 16,
@@ -70,5 +81,11 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     landThreshold: 0.64,
+    isWraparoundX: true,
   },
 };
+
+/** Builds the `WrapContext` a map type's stages should use for a given width. */
+export function wrapContextFor(mapType: MapType, width: number): WrapContext {
+  return { isWraparoundX: MAP_TYPE_PRESETS[mapType].isWraparoundX, width };
+}

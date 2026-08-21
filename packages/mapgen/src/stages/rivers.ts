@@ -1,5 +1,7 @@
+import { neighbors } from "@freevilisation/engine";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { LandmassResult } from "./landmass.js";
+import { wrapContextFor } from "../config.js";
 
 export interface RiversResult {
   /** Per-tile river flag, length = width * height, index-aligned with elevation. */
@@ -28,16 +30,17 @@ function stepBound(width: number, height: number): number {
  * Algorithm:
  * 1. Select land tiles in the top 10% elevation percentile as candidates.
  * 2. Randomly pick a bounded subset as actual river sources.
- * 3. From each source, trace downhill to the lowest unvisited 4-neighbor,
+ * 3. From each source, trace downhill to the lowest unvisited hex neighbor,
  *    marking `hasRiver = true` along the path, stopping at coast, local
  *    minimum, or step bound.
  */
 export function generateRivers(
-  _params: MapGenParams,
+  params: MapGenParams,
   landmass: LandmassResult,
   ctx: StageContext,
 ): RiversResult {
   const { width, height, elevation, isLand } = landmass;
+  const wrap = wrapContextFor(params.mapType, width);
   const total = width * height;
   const hasRiver = new Array<boolean>(total).fill(false);
 
@@ -77,14 +80,6 @@ export function generateRivers(
     candidates[pick] = candidates[lastIdx]!;
   }
 
-  // 4-neighbor deltas: [dq, dr]
-  const deltas: readonly [number, number][] = [
-    [-1, 0],
-    [1, 0],
-    [0, -1],
-    [0, 1],
-  ];
-
   const bound = stepBound(width, height);
 
   // Trace each source downhill
@@ -102,10 +97,9 @@ export function generateRivers(
       let lowestIdx = -1;
       let lowestElev = Infinity;
 
-      for (const [dq, dr] of deltas) {
-        const nq = q + dq;
-        const nr = r + dr;
-        if (nq < 0 || nq >= width || nr < 0 || nr >= height) continue;
+      for (const { q: nq, r: nr } of neighbors({ q, r }, wrap)) {
+        if (nr < 0 || nr >= height) continue;
+        if (!wrap.isWraparoundX && (nq < 0 || nq >= width)) continue;
         const ni = nr * width + nq;
         if (visited.has(ni)) continue;
         if (elevation[ni]! < lowestElev) {

@@ -1,7 +1,8 @@
-import type { ResourceDefId, TerrainDefId } from "@freevilisation/engine";
+import { distance, type ResourceDefId, type TerrainDefId } from "@freevilisation/engine";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { ClimateResult } from "./climate.js";
 import type { LandmassResult } from "./landmass.js";
+import { wrapContextFor } from "../config.js";
 
 type ResourceClass = "bonus" | "strategic" | "luxury";
 
@@ -83,12 +84,13 @@ export interface ResourcesResult {
 }
 
 export function generateResources(
-  _params: MapGenParams,
+  params: MapGenParams,
   climate: ClimateResult,
   landmass: LandmassResult,
   ctx: StageContext,
 ): ResourcesResult {
   const { width, height } = landmass;
+  const wrap = wrapContextFor(params.mapType, width);
   const tileCount = width * height;
   const resourceDefId = new Array<ResourceDefId | null>(tileCount).fill(null);
   const placedPositions = new Map<ResourceDefId, Array<[number, number]>>();
@@ -122,9 +124,7 @@ export function generateResources(
 
       let tooClose = false;
       for (const [pr, pq] of placed) {
-        const dr = Math.abs(r - pr);
-        const dq = Math.abs(q - pq);
-        if (Math.max(dr, dq) < fixture.minSpacing) {
+        if (distance({ q, r }, { q: pq, r: pr }, wrap) < fixture.minSpacing) {
           tooClose = true;
           break;
         }

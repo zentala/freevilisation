@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { createPrng } from "@freevilisation/engine";
+import { createPrng, neighbors } from "@freevilisation/engine";
 import { generateClimate, TERRAIN } from "./climate.js";
 import { generateLandmass } from "./landmass.js";
+import { wrapContextFor } from "../config.js";
 import type { MapGenParams } from "../pipeline.js";
 
 const TERRAIN_IDS = Object.values(TERRAIN);
@@ -88,28 +89,17 @@ describe("generateClimate", () => {
     const params = makeParams({ mapSize: "small" });
     const { landmass, climate } = runClimate(params);
     const { width, height } = landmass;
+    const wrap = wrapContextFor(params.mapType, width);
     let checked = 0;
     for (let r = 0; r < height; r++) {
       for (let q = 0; q < width; q++) {
         const idx = r * width + q;
         if (climate.terrainDefId[idx] !== TERRAIN.coast) continue;
-        const deltas: readonly [number, number][] = [
-          [-1, 0],
-          [1, 0],
-          [0, -1],
-          [0, 1],
-        ];
         let hasLandNeighbor = false;
-        for (const [dq, dr] of deltas) {
-          const nq = q + dq;
-          const nr = r + dr;
-          if (
-            nq >= 0 &&
-            nq < width &&
-            nr >= 0 &&
-            nr < height &&
-            landmass.isLand[nr * width + nq]!
-          ) {
+        for (const { q: nq, r: nr } of neighbors({ q, r }, wrap)) {
+          if (nr < 0 || nr >= height) continue;
+          if (!wrap.isWraparoundX && (nq < 0 || nq >= width)) continue;
+          if (landmass.isLand[nr * width + nq]!) {
             hasLandNeighbor = true;
             break;
           }

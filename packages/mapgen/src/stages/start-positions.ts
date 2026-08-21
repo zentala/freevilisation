@@ -1,9 +1,10 @@
-import type { TerrainDefId } from "@freevilisation/engine";
+import { neighbors, distance, type TerrainDefId, type WrapContext } from "@freevilisation/engine";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { LandmassResult } from "./landmass.js";
 import type { ClimateResult } from "./climate.js";
 import type { ResourcesResult } from "./resources.js";
 import { TERRAIN } from "./climate.js";
+import { wrapContextFor } from "../config.js";
 
 /** Default player count when `MapGenParams.numPlayers` is omitted. */
 const DEFAULT_NUM_PLAYERS = 4;
@@ -42,17 +43,9 @@ interface Candidate {
   readonly quality: number;
 }
 
-/** Row/col neighbor offsets — no wraparound, matches every other stage. */
-const NEIGHBOR_OFFSETS: ReadonlyArray<[number, number]> = [
-  [0, -1],
-  [0, 1],
-  [-1, 0],
-  [1, 0],
-];
-
 /**
  * Quality score for one land tile: its own base terrain quality, plus +1 for
- * each in-bounds row/col neighbor that carries a resource. This is a simple
+ * each in-bounds hex neighbor that carries a resource. This is a simple
  * "adjacent yield sum" proxy, not a real yield calculation.
  */
 function scoreTile(
@@ -62,14 +55,14 @@ function scoreTile(
   height: number,
   climate: ClimateResult,
   resources: ResourcesResult,
+  wrap: WrapContext,
 ): number {
   const idx = r * width + q;
   let score = TERRAIN_QUALITY[climate.terrainDefId[idx]!] ?? 0;
 
-  for (const [dq, dr] of NEIGHBOR_OFFSETS) {
-    const nq = q + dq;
-    const nr = r + dr;
-    if (nq < 0 || nq >= width || nr < 0 || nr >= height) continue;
+  for (const { q: nq, r: nr } of neighbors({ q, r }, wrap)) {
+    if (nr < 0 || nr >= height) continue;
+    if (!wrap.isWraparoundX && (nq < 0 || nq >= width)) continue;
     if (resources.resourceDefId[nr * width + nq] !== null) score += 1;
   }
 
@@ -80,6 +73,7 @@ function buildCandidates(
   landmass: LandmassResult,
   climate: ClimateResult,
   resources: ResourcesResult,
+  wrap: WrapContext,
 ): Candidate[] {
   const { width, height } = landmass;
   const candidates: Candidate[] = [];
@@ -89,7 +83,11 @@ function buildCandidates(
       const idx = r * width + q;
       if (!landmass.isLand[idx]) continue;
       if (!(climate.terrainDefId[idx]! in TERRAIN_QUALITY)) continue;
-      candidates.push({ q, r, quality: scoreTile(q, r, width, height, climate, resources) });
+      candidates.push({
+        q,
+        r,
+        quality: scoreTile(q, r, width, height, climate, resources, wrap),
+      });
     }
   }
 
@@ -134,11 +132,6 @@ function selectCandidatePool(
   return allLand;
 }
 
-/** Chebyshev distance — consistent with resources.ts's spacing check. */
-function chebyshevDistance(a: Candidate, b: Candidate): number {
-  return Math.max(Math.abs(a.q - b.q), Math.abs(a.r - b.r));
-}
-
 /** Pick uniformly at random among indices tied for the given value. */
 function pickTiedIndex(values: readonly number[], best: number, prng: { next(): number }): number {
   const tied: number[] = [];
@@ -157,6 +150,7 @@ function farthestPointSample(
   pool: Candidate[],
   numPlayers: number,
   ctx: StageContext,
+  wrap: WrapContext,
 ): StartPosition[] {
   const remaining = pool.slice();
   const chosen: Candidate[] = [];
@@ -168,7 +162,7 @@ function farthestPointSample(
 
   while (chosen.length < numPlayers && remaining.length > 0) {
     const minDistances = remaining.map((candidate) =>
-      Math.min(...chosen.map((c) => chebyshevDistance(candidate, c))),
+      Math.min(...chosen.map((c) => distance(candidate, c, wrap))),
     );
     const best = Math.max(...minDistances);
     const pickIdx = pickTiedIndex(minDistances, best, ctx.prng);
@@ -186,8 +180,9 @@ export function generateStartPositions(
   ctx: StageContext,
 ): StartPositionsResult {
   const numPlayers = params.numPlayers ?? DEFAULT_NUM_PLAYERS;
-  const allCandidates = buildCandidates(landmass, climate, resources);
+  const wrap = wrapContextFor(params.mapType, landmass.width);
+  const allCandidates = buildCandidates(landmass, climate, resources, wrap);
   const pool = selectCandidatePool(allCandidates, landmass, numPlayers);
-  const startPositions = farthestPointSample(pool, numPlayers, ctx);
+  const startPositions = farthestPointSample(pool, numPlayers, ctx, wrap);
   return { startPositions };
 }

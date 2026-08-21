@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { createPrng, type ResourceDefId } from "@freevilisation/engine";
+import { createPrng, distance, type ResourceDefId } from "@freevilisation/engine";
 import { generateResources, RESOURCE_FIXTURE } from "./resources.js";
 import { generateLandmass } from "./landmass.js";
 import { generateClimate } from "./climate.js";
+import { wrapContextFor } from "../config.js";
 import type { MapGenParams } from "../pipeline.js";
 
 function makeParams(overrides?: Partial<MapGenParams>): MapGenParams {
@@ -89,6 +90,7 @@ describe("generateResources", () => {
     const { landmass, resources } = runResources(params);
     const placed: Record<string, Array<[number, number]>> = {};
     const { width } = landmass;
+    const wrap = wrapContextFor(params.mapType, width);
 
     for (let i = 0; i < landmass.isLand.length; i++) {
       const rid = resources.resourceDefId[i]!;
@@ -109,9 +111,9 @@ describe("generateResources", () => {
         for (let b = a + 1; b < positions.length; b++) {
           const [r1, q1] = positions[a]!;
           const [r2, q2] = positions[b]!;
-          const dr = Math.abs(r1 - r2);
-          const dq = Math.abs(q1 - q2);
-          expect(Math.max(dr, dq)).toBeGreaterThanOrEqual(minSpacing);
+          expect(distance({ q: q1, r: r1 }, { q: q2, r: r2 }, wrap)).toBeGreaterThanOrEqual(
+            minSpacing,
+          );
         }
       }
     }

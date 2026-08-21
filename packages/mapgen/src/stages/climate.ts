@@ -1,7 +1,8 @@
-import type { Prng, TerrainDefId } from "@freevilisation/engine";
+import { neighbors, type Prng, type TerrainDefId, type WrapContext } from "@freevilisation/engine";
 import { fractalNoise2D } from "../noise.js";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { LandmassResult } from "./landmass.js";
+import { wrapContextFor } from "../config.js";
 
 export const TERRAIN = {
   ocean: "terrain_ocean" as TerrainDefId,
@@ -61,19 +62,18 @@ function landTerrain(temp: number, moisture: number): TerrainDefId {
   return TERRAIN.plains;
 }
 
-function isCoast(q: number, r: number, width: number, height: number, isLand: boolean[]): boolean {
-  const deltas: readonly [number, number][] = [
-    [-1, 0],
-    [1, 0],
-    [0, -1],
-    [0, 1],
-  ];
-  for (const [dq, dr] of deltas) {
-    const nq = q + dq;
-    const nr = r + dr;
-    if (nq >= 0 && nq < width && nr >= 0 && nr < height && isLand[nr * width + nq]!) {
-      return true;
-    }
+function isCoast(
+  q: number,
+  r: number,
+  width: number,
+  height: number,
+  isLand: boolean[],
+  wrap: WrapContext,
+): boolean {
+  for (const { q: nq, r: nr } of neighbors({ q, r }, wrap)) {
+    if (nr < 0 || nr >= height) continue;
+    if (!wrap.isWraparoundX && (nq < 0 || nq >= width)) continue;
+    if (isLand[nr * width + nq]!) return true;
   }
   return false;
 }
@@ -83,11 +83,12 @@ function isCoast(q: number, r: number, width: number, height: number, isLand: bo
  * temperature and a noise-driven moisture field.
  */
 export function generateClimate(
-  _params: MapGenParams,
+  params: MapGenParams,
   landmass: LandmassResult,
   ctx: StageContext,
 ): ClimateResult {
   const { width, height, isLand } = landmass;
+  const wrap = wrapContextFor(params.mapType, width);
   const moistureSeed = drawSeed(ctx.prng.fork("moisture"));
 
   ctx.onProgress(0);
@@ -99,7 +100,9 @@ export function generateClimate(
       const idx = r * width + q;
 
       if (!isLand[idx]!) {
-        terrainDefId[idx] = isCoast(q, r, width, height, isLand) ? TERRAIN.coast : TERRAIN.ocean;
+        terrainDefId[idx] = isCoast(q, r, width, height, isLand, wrap)
+          ? TERRAIN.coast
+          : TERRAIN.ocean;
         continue;
       }
 

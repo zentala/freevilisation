@@ -12,7 +12,7 @@ import { generateFeatures } from "./stages/features.js";
 import { generateResources } from "./stages/resources.js";
 import { generateStartPositions } from "./stages/start-positions.js";
 import type { StartPosition } from "./stages/start-positions.js";
-import { MAP_SIZES, MAP_TYPE_PRESETS } from "./config.js";
+import { MAP_SIZES, MAP_TYPE_PRESETS, wrapContextFor } from "./config.js";
 
 /** The four supported map shapes. */
 export type MapType = "continents" | "pangaea" | "archipelago" | "islands";
@@ -56,12 +56,9 @@ export interface MapGenResult {
   /** Map height in tiles. */
   readonly height: number;
   /**
-   * Whether the map wraps east-west.
-   *
-   * Always `false` today: every stage treats the grid as flat — rivers,
-   * climate and landmass all drop neighbours at `col < 0 || col >= width`
-   * instead of wrapping them. Declaring `true` here would tell the renderer
-   * and pathfinder to join two edges the generator never joined.
+   * Whether the map wraps east-west, joining the two vertical edges into a
+   * cylinder. Decided by `mapType` (see `MAP_TYPE_PRESETS`) and honoured by
+   * every stage that reads neighbours or measures distance.
    */
   readonly isWraparoundX: boolean;
   /** Elevation per tile, length = width * height, values in [0,1). */
@@ -162,7 +159,7 @@ export function generateMap(
     mapSize: params.mapSize,
     width: landmass.width,
     height: landmass.height,
-    isWraparoundX: false,
+    isWraparoundX: wrapContextFor(params.mapType, landmass.width).isWraparoundX,
     elevation: landmass.elevation,
     isLand: landmass.isLand,
     terrainDefId: climate.terrainDefId,
