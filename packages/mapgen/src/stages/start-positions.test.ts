@@ -5,6 +5,7 @@ import { generateLandmass } from "./landmass.js";
 import { generateClimate, TERRAIN } from "./climate.js";
 import { generateResources } from "./resources.js";
 import type { MapGenParams } from "../pipeline.js";
+import type { TerrainDefId } from "@freevilisation/engine";
 
 function makeParams(overrides?: Partial<MapGenParams>): MapGenParams {
   return {
@@ -103,6 +104,42 @@ function uniformMap(width: number, height: number) {
     climate: { terrainDefId: new Array(size).fill(TERRAIN.desert) },
     resources: { resourceDefId: new Array(size).fill(null) },
   };
+}
+
+/**
+ * A PRNG handing out a fixed sequence of draws, repeating the last one once
+ * exhausted. Pinning the draws is the only way to tell "picked at random among
+ * equals" apart from "always picked the first one".
+ */
+function scriptedPrng(values: readonly number[]): ReturnType<typeof createPrng> {
+  let i = 0;
+  return {
+    next: () => values[Math.min(i++, values.length - 1)]!,
+  } as unknown as ReturnType<typeof createPrng>;
+}
+
+/**
+ * Place `numPlayers` on a map built by hand: `land` lists the only land tiles,
+ * every one of them carrying `terrain`, with no resources anywhere.
+ */
+function placeOnHandMadeMap(
+  width: number,
+  height: number,
+  land: readonly { q: number; r: number }[],
+  terrain: TerrainDefId,
+  numPlayers: number,
+  draws: readonly number[],
+) {
+  const size = width * height;
+  const isLand = new Array(size).fill(false);
+  for (const { q, r } of land) isLand[r * width + q] = true;
+  return generateStartPositions(
+    { seed: 1, mapType: "continents", mapSize: "tiny", numPlayers },
+    { width, height, elevation: new Array(size).fill(1), isLand },
+    { terrainDefId: new Array(size).fill(terrain) } as never,
+    { resourceDefId: new Array(size).fill(null) } as never,
+    { prng: scriptedPrng(draws), onProgress: () => {} },
+  ).startPositions;
 }
 
 /** Sort helper so a set of positions can be compared regardless of pick order. */
@@ -309,6 +346,121 @@ describe("generateStartPositions", () => {
     expect(startPositions).toEqual([
       { q: 0, r: 0 },
       { q: 0, r: 5 },
+    ]);
+  });
+
+  it("spreads players apart instead of clustering them next to each other", () => {
+    // Land only at q = 0, 1, 5 and 9 of a one-row strip, first pick pinned to
+    // (0,0). Farthest-point sampling takes (9,0) and then (5,0), the tile whose
+    // *nearest* neighbour is furthest away. Maximising the distance to the
+    // furthest chosen tile instead would take (1,0) and pack two players into
+    // adjacent tiles.
+    const positions = placeOnHandMadeMap(
+      10,
+      1,
+      [
+        { q: 0, r: 0 },
+        { q: 1, r: 0 },
+        { q: 5, r: 0 },
+        { q: 9, r: 0 },
+      ],
+      TERRAIN.desert,
+      3,
+      [0],
+    );
+    expect(positions).toEqual([
+      { q: 0, r: 0 },
+      { q: 9, r: 0 },
+      { q: 5, r: 0 },
+    ]);
+  });
+
+  it("breaks a distance tie with the PRNG, not with array order", () => {
+    // From (0,0) both (4,0) and (0,4) sit at distance 4. A draw of 0.9 across
+    // the two tied tiles must land on the second one; always taking the first
+    // tied index gives every map a north-west bias.
+    const positions = placeOnHandMadeMap(
+      5,
+      5,
+      [
+        { q: 0, r: 0 },
+        { q: 4, r: 0 },
+        { q: 0, r: 4 },
+      ],
+      TERRAIN.desert,
+      2,
+      [0, 0.9],
+    );
+    expect(positions).toEqual([
+      { q: 0, r: 0 },
+      { q: 0, r: 4 },
+    ]);
+  });
+
+  it("takes the first position from the PRNG draw, not from scan order", () => {
+    // Three candidates in row-major order; a draw of 0.9 selects the third.
+    const positions = placeOnHandMadeMap(
+      5,
+      5,
+      [
+        { q: 0, r: 0 },
+        { q: 4, r: 0 },
+        { q: 0, r: 4 },
+      ],
+      TERRAIN.desert,
+      1,
+      [0.9],
+    );
+    expect(positions).toEqual([{ q: 0, r: 4 }]);
+  });
+
+  it("places players when the land tile count exactly equals numPlayers", () => {
+    // Ocean terrain carries no quality entry, so the quality pool stays empty
+    // and selection falls through to every land tile - exactly three of them
+    // for three players. The error is for *fewer* land tiles than players;
+    // an equal count must still succeed.
+    const positions = placeOnHandMadeMap(
+      3,
+      3,
+      [
+        { q: 0, r: 0 },
+        { q: 2, r: 0 },
+        { q: 0, r: 2 },
+      ],
+      TERRAIN.ocean,
+      3,
+      [0],
+    );
+    expect(positions.length).toBe(3);
+  });
+
+  it("never treats a water-terrain tile as a candidate, however well it scores", () => {
+    // A one-row strip where every tile is land but the leftmost carries coast
+    // terrain. The resource on q=1 lifts both its neighbours to quality 1, so
+    // the coast tile outscores three of the four deserts and would win a place
+    // if it were allowed into the pool at all. It must not be: the deserts get
+    // both slots, and the floor relaxes to 0 to find them.
+    const width = 5;
+    const terrainDefId = [
+      TERRAIN.coast,
+      TERRAIN.desert,
+      TERRAIN.desert,
+      TERRAIN.desert,
+      TERRAIN.desert,
+    ];
+    const resourceDefId = [null, "resource_probe", null, null, null];
+
+    const { startPositions } = generateStartPositions(
+      { seed: 1, mapType: "continents", mapSize: "tiny", numPlayers: 2 },
+      { width, height: 1, elevation: new Array(width).fill(1), isLand: new Array(width).fill(true) },
+      { terrainDefId } as never,
+      { resourceDefId } as never,
+      { prng: scriptedPrng([0]), onProgress: () => {} },
+    );
+
+    expect(startPositions).toEqual([
+      { q: 1, r: 0 },
+      { q: 4, r: 0 },
     ]);
   });
 });
