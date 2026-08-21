@@ -4,6 +4,7 @@ import { generateStartPositions } from "./start-positions.js";
 import { generateLandmass } from "./landmass.js";
 import { generateClimate, TERRAIN } from "./climate.js";
 import { generateResources } from "./resources.js";
+import { generateMap } from "../pipeline.js";
 import type { MapGenParams } from "../pipeline.js";
 import type { TerrainDefId } from "@freevilisation/engine";
 
@@ -142,6 +143,33 @@ function placeOnHandMadeMap(
   ).startPositions;
 }
 
+/**
+ * Every tile is land and desert, except the tiles named in `terrain`. Resource
+ * tiles are named separately, since a resource lifts its *neighbours* score,
+ * not its own.
+ */
+function placeOnPaintedMap(
+  width: number,
+  height: number,
+  terrain: ReadonlyArray<{ q: number; r: number; id: TerrainDefId }>,
+  resources: ReadonlyArray<{ q: number; r: number }>,
+  numPlayers: number,
+  draws: readonly number[],
+) {
+  const size = width * height;
+  const terrainDefId = new Array(size).fill(TERRAIN.desert);
+  for (const { q, r, id } of terrain) terrainDefId[r * width + q] = id;
+  const resourceDefId = new Array(size).fill(null);
+  for (const { q, r } of resources) resourceDefId[r * width + q] = "resource_probe";
+  return generateStartPositions(
+    { seed: 1, mapType: "continents", mapSize: "tiny", numPlayers },
+    { width, height, elevation: new Array(size).fill(1), isLand: new Array(size).fill(true) },
+    { terrainDefId } as never,
+    { resourceDefId } as never,
+    { prng: scriptedPrng(draws), onProgress: () => {} },
+  ).startPositions;
+}
+
 /** Sort helper so a set of positions can be compared regardless of pick order. */
 function byPosition(a: { q: number; r: number }, b: { q: number; r: number }): number {
   return a.r - b.r || a.q - b.q;
@@ -234,7 +262,10 @@ describe("generateStartPositions", () => {
         prng: createPrng(12345).fork("test"),
         onProgress: () => {},
       }),
-    ).toThrow("Cannot place 30 players on a map with");
+    ).toThrow(
+      "Cannot place 30 players on a map with 0 land tiles; " +
+        "place fewer players or use a larger map.",
+    );
   });
 
   it("relaxes the quality floor instead of dumping the whole landmass into the pool", () => {
@@ -462,5 +493,63 @@ describe("generateStartPositions", () => {
       { q: 1, r: 0 },
       { q: 4, r: 0 },
     ]);
+  });
+
+  it("counts the tile directly below as a neighbour, not the one diagonally below", () => {
+    // A one-column strip, so left/right offsets are always out of bounds and only
+    // the vertical pair can score anything. The resource at (0,1) lifts (0,0) and
+    // (0,2) to quality 1, and those two are exactly the pool for two players. Turn
+    // the downward offset diagonal and (0,0) drops to 0, the floor relaxes to 0,
+    // and the pick spreads to the far end of the strip instead.
+    const positions = placeOnPaintedMap(1, 5, [], [{ q: 0, r: 1 }], 2, [0]);
+    expect(positions).toEqual([
+      { q: 0, r: 0 },
+      { q: 0, r: 2 },
+    ]);
+  });
+
+  it("ranks plains below grassland: three grassland tiles keep the floor at 3", () => {
+    // Grassland clears the initial floor of 3 and plains does not, so three
+    // grassland tiles are the whole pool and the far corners never come up.
+    // Score plains as high as grassland and the pool grows to six, pulling a
+    // corner in as the farthest point.
+    const grass = [0, 1, 2].map((q) => ({ q, r: 0, id: TERRAIN.grassland }));
+    const plains = [
+      { q: 6, r: 0, id: TERRAIN.plains },
+      { q: 0, r: 6, id: TERRAIN.plains },
+      { q: 6, r: 6, id: TERRAIN.plains },
+    ];
+    const positions = placeOnPaintedMap(7, 7, [...grass, ...plains], [], 3, [0]);
+    expect([...positions].sort(byPosition)).toEqual([
+      { q: 0, r: 0 },
+      { q: 1, r: 0 },
+      { q: 2, r: 0 },
+    ]);
+  });
+
+  it("ranks tundra above desert: the floor stops at 1 instead of falling to 0", () => {
+    // One grassland, one plains and three tundra tiles reach four players only
+    // once the floor drops to 1 - which needs tundra to score above desert.
+    // Score tundra as desert and the floor falls to 0, handing the whole 7x7
+    // desert to the sampler, which then takes the far corners.
+    const painted = [
+      { q: 0, r: 0, id: TERRAIN.grassland },
+      { q: 1, r: 0, id: TERRAIN.plains },
+      { q: 2, r: 0, id: TERRAIN.tundra },
+      { q: 3, r: 0, id: TERRAIN.tundra },
+      { q: 4, r: 0, id: TERRAIN.tundra },
+    ];
+    const positions = placeOnPaintedMap(7, 7, painted, [], 4, [0]);
+    for (const { r } of positions) expect(r).toBe(0);
+  });
+
+  it("generateMap reproduces the stage run: same seed, same forked stream", () => {
+    // Pins the PRNG fork label the pipeline uses. Rename the fork and the
+    // pipeline stays internally deterministic while silently drawing from a
+    // different stream than the stage harness.
+    const params = makeParams({ mapSize: "standard", numPlayers: 6 });
+    expect(generateMap(params).startPositions).toEqual(
+      runStartPositions(params).startPositions.startPositions,
+    );
   });
 });
