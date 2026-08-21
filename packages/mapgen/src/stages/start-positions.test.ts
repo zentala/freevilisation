@@ -105,6 +105,11 @@ function uniformMap(width: number, height: number) {
   };
 }
 
+/** Sort helper so a set of positions can be compared regardless of pick order. */
+function byPosition(a: { q: number; r: number }, b: { q: number; r: number }): number {
+  return a.r - b.r || a.q - b.q;
+}
+
 describe("generateStartPositions", () => {
   it("determinism: same seed and params produce byte-identical startPositions", () => {
     const params = makeParams({ numPlayers: 4 });
@@ -240,5 +245,70 @@ describe("generateStartPositions", () => {
       { prng: createPrng(params.seed).fork("start-positions"), onProgress: () => {} },
     );
     expect(minPairwiseDistance(startPositions)).toBe(5);
+  });
+
+  it("keeps a floor whose pool exactly matches numPlayers instead of relaxing past it", () => {
+    // Exactly three tiles clear the initial floor of 3. Requiring *more* than
+    // numPlayers rather than at least numPlayers relaxes all the way to 0 and
+    // drags the whole desert into the pool.
+    const width = 6;
+    const height = 6;
+    const size = width * height;
+    const terrainDefId = new Array(size).fill(TERRAIN.desert);
+    const goodTiles = [
+      { q: 0, r: 0 },
+      { q: 5, r: 0 },
+      { q: 0, r: 5 },
+    ];
+    for (const { q, r } of goodTiles) terrainDefId[r * width + q] = TERRAIN.grassland;
+
+    const { startPositions } = generateStartPositions(
+      { seed: 12345, mapType: "continents", mapSize: "tiny", numPlayers: 3 },
+      { width, height, elevation: new Array(size).fill(1), isLand: new Array(size).fill(true) },
+      { terrainDefId } as never,
+      { resourceDefId: new Array(size).fill(null) } as never,
+      { prng: createPrng(12345).fork("start-positions"), onProgress: () => {} },
+    );
+
+    expect(startPositions.length).toBe(3);
+    expect([...startPositions].sort(byPosition)).toEqual([...goodTiles].sort(byPosition));
+  });
+
+  it("ranks candidates by Chebyshev distance, not Manhattan", () => {
+    // Four land tiles on an otherwise empty map, with a PRNG pinned to 0 so the
+    // first pick is the scan-order first tile, (0,0). Measured from there:
+    //   (4,0) Chebyshev 4, Manhattan 4
+    //   (3,3) Chebyshev 3, Manhattan 6
+    //   (0,5) Chebyshev 5, Manhattan 5
+    // Chebyshev therefore takes (0,5); Manhattan would take (3,3).
+    const width = 5;
+    const height = 6;
+    const size = width * height;
+    const isLand = new Array(size).fill(false);
+    for (const { q, r } of [
+      { q: 0, r: 0 },
+      { q: 4, r: 0 },
+      { q: 3, r: 3 },
+      { q: 0, r: 5 },
+    ]) {
+      isLand[r * width + q] = true;
+    }
+
+    const { startPositions } = generateStartPositions(
+      { seed: 1, mapType: "continents", mapSize: "tiny", numPlayers: 2 },
+      { width, height, elevation: new Array(size).fill(1), isLand },
+      { terrainDefId: new Array(size).fill(TERRAIN.desert) } as never,
+      { resourceDefId: new Array(size).fill(null) } as never,
+      {
+        // A PRNG pinned to 0 makes both the first pick and every tie-break index 0.
+        prng: { next: () => 0 } as unknown as ReturnType<typeof createPrng>,
+        onProgress: () => {},
+      },
+    );
+
+    expect(startPositions).toEqual([
+      { q: 0, r: 0 },
+      { q: 0, r: 5 },
+    ]);
   });
 });
