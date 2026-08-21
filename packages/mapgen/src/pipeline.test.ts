@@ -65,16 +65,13 @@ describe("generateMap", () => {
     expect(calls[calls.length - 1]).toBe(100);
   });
 
-  // continents, pangaea and islands model a full globe and wrap; archipelago
-  // models a bounded rectangle of scattered islands and stays flat. This test
-  // fails if the reported flag stops matching what config.ts declares.
-  it("reports isWraparoundX matching the map type's preset", () => {
-    expect(generateMap({ seed: 1, mapType: "continents", mapSize: "tiny" }).isWraparoundX).toBe(
-      true,
-    );
-    expect(generateMap({ seed: 1, mapType: "archipelago", mapSize: "tiny" }).isWraparoundX).toBe(
-      false,
-    );
+  // Every map type wraps east-west in v1 (see config.ts). This test fails
+  // loudly if a single preset is ever flipped back to non-wrapping, so the
+  // inconsistency config.ts warns against can't slip back in silently.
+  it("reports isWraparoundX === true for every map type", () => {
+    for (const mapType of MAP_TYPES) {
+      expect(generateMap({ seed: 1, mapType, mapSize: "tiny" }).isWraparoundX).toBe(true);
+    }
   });
 
   it("onProgress omitted does not throw", () => {

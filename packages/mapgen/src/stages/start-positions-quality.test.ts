@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createPrng } from "@freevilisation/engine";
-import { generateStartPositions } from "./start-positions.js";
+import { generateStartPositions, placeStartPositions } from "./start-positions.js";
 import { TERRAIN } from "./climate.js";
-import type { MapGenParams } from "../pipeline.js";
 import {
   makeParams,
   runStartPositions,
@@ -11,6 +10,7 @@ import {
   uniformMap,
   byPosition,
   wrapContextFor,
+  flatWrap,
   EXPECTED_QUALITY,
 } from "./start-positions.test-fixtures.js";
 
@@ -49,19 +49,15 @@ describe("generateStartPositions — terrain and resource quality", () => {
     // out-of-bounds neighbour read gives the bottom row a phantom bonus, which
     // shrinks the pool to that row and collapses the spread.
     const { landmass, climate, resources } = uniformMap(2, 6);
-    const params: MapGenParams = {
-      seed: 12345,
-      mapType: "archipelago",
-      mapSize: "tiny",
-      numPlayers: 2,
-    };
-    const wrap = wrapContextFor(params.mapType, landmass.width);
-    const { startPositions } = generateStartPositions(
-      params,
+    const seed = 12345;
+    const wrap = flatWrap(landmass.width);
+    const { startPositions } = placeStartPositions(
       landmass,
       climate as never,
       resources as never,
-      { prng: createPrng(params.seed).fork("start-positions"), onProgress: () => {} },
+      { prng: createPrng(seed).fork("start-positions"), onProgress: () => {} },
+      wrap,
+      2,
     );
     expect(minPairwiseHexDistance(startPositions, wrap)).toBe(6);
   });

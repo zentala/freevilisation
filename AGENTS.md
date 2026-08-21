@@ -32,7 +32,10 @@ gitignored here) — read it, never commit to it from a worktree.
 
 ## Code style
 
-- Files ≤ 250 lines, functions ≤ 50 lines. Larger = split it.
+- Files ≤ 250 lines, functions ≤ 50 lines. Larger = split it. This is an
+  ESLint `max-lines` error, not a convention — split as you write, because
+  the build refuses the file either way. Test files are not exempt; the
+  oracles go in a `*.test-fixtures.ts` sibling.
 - Strict TypeScript. Prefer explicit types over `any`.
 - Self-documenting names; comment only non-obvious logic.
 - No speculative abstractions, no feature flags, no "simplified for now".
@@ -63,6 +66,10 @@ package".
 
 ## Testing
 
+- The full suite is `pnpm run test` at the repo root, and only that. **Never
+  `pnpm -r test`** — no workspace package defines a `test` script, so a
+  recursive run executes nothing and exits 0. It prints "Scope: 7 of 8
+  workspace projects" and reads exactly like a green full-suite run.
 - Test file basename must match its source file's basename:
   `src/foo/Bar.ts` -> `tests/foo/Bar.test.ts` (per-file coverage gates key on this).
 - Coverage targets: pure functions (validators, normalizers, parsers) 100%;

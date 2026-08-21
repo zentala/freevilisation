@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { neighbors } from "@freevilisation/engine";
-import { generateStartPositions } from "./start-positions.js";
+import { generateStartPositions, placeStartPositions } from "./start-positions.js";
 import { TERRAIN } from "./climate.js";
 import {
   runStartPositions,
   makeParams,
   minPairwiseHexDistance,
   wrapContextFor,
+  flatWrap,
   scriptedPrng,
   placeOnHandMadeMap,
   placeOnPaintedMap,
@@ -18,7 +19,7 @@ describe("generateStartPositions — hex geometry (neighbours and distance)", ()
     // of the six axial directions — it omits (1,-1) and (-1,1). This test fails
     // against that table (4 entries, missing the two diagonals) and passes
     // against the engine's real hex neighbours.
-    const wrap = wrapContextFor("archipelago", 100);
+    const wrap = flatWrap(100);
     const result = neighbors({ q: 10, r: 10 }, wrap);
     expect(result).toHaveLength(6);
     const offsets = result.map(({ q, r }) => [q - 10, r - 10].join(","));
@@ -82,12 +83,13 @@ describe("generateStartPositions — hex geometry (neighbours and distance)", ()
     const resourceDefId = new Array(size).fill(null);
     resourceDefId[0 * width + 2] = "resource_probe";
 
-    const { startPositions } = generateStartPositions(
-      { seed: 1, mapType: "archipelago", mapSize: "tiny", numPlayers: 1 },
+    const { startPositions } = placeStartPositions(
       { width, height, elevation: new Array(size).fill(1), isLand },
       { terrainDefId } as never,
       { resourceDefId } as never,
       { prng: scriptedPrng([0]), onProgress: () => {} },
+      flatWrap(width),
+      1,
     );
 
     expect(startPositions).toEqual([{ q: 1, r: 1 }]);
@@ -174,8 +176,7 @@ describe("generateStartPositions — hex geometry (neighbours and distance)", ()
     ];
     const resourceDefId = [null, "resource_probe", null, null, null];
 
-    const { startPositions } = generateStartPositions(
-      { seed: 1, mapType: "archipelago", mapSize: "tiny", numPlayers: 2 },
+    const { startPositions } = placeStartPositions(
       {
         width,
         height: 1,
@@ -185,6 +186,8 @@ describe("generateStartPositions — hex geometry (neighbours and distance)", ()
       { terrainDefId } as never,
       { resourceDefId } as never,
       { prng: scriptedPrng([0]), onProgress: () => {} },
+      flatWrap(width),
+      2,
     );
 
     expect(startPositions).toEqual([

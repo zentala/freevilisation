@@ -30,9 +30,14 @@ export interface MapTypePreset {
   readonly landThreshold: number;
   /**
    * Whether this map type wraps east-west, joining the two vertical edges
-   * into a cylinder. `continents`, `pangaea` and `islands` model a full
-   * globe and wrap. `archipelago` models a bounded rectangle of scattered
-   * islands rather than a whole world, so it stays flat.
+   * into a cylinder. Every `MapType` wraps in v1: a player who learns that
+   * sailing west brings them back from the east should not find that untrue
+   * on one map type, and a non-wrapping branch left unexercised in
+   * production is exactly where the square-grid bug hid before (ADR-017).
+   * The field stays data-driven rather than a hardcoded `true` so a future
+   * flat-world map type or custom-map option is a data change, not a code
+   * change — do not delete it as dead weight, and do not flip a preset to
+   * `false` without reading this comment first.
    */
   readonly isWraparoundX: boolean;
 }
@@ -70,7 +75,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     landThreshold: 0.58,
-    isWraparoundX: false,
+    isWraparoundX: true,
   },
   islands: {
     continentFrequency: 16,

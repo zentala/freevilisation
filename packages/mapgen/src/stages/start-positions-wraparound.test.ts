@@ -2,14 +2,14 @@ import { describe, it, expect } from "vitest";
 import { neighbors, distance } from "@freevilisation/engine";
 import { generateStartPositions } from "./start-positions.js";
 import { TERRAIN } from "./climate.js";
-import { wrapContextFor, scriptedPrng } from "./start-positions.test-fixtures.js";
+import { wrapContextFor, flatWrap, scriptedPrng } from "./start-positions.test-fixtures.js";
 
 describe("wraparound geometry (east-west seam)", () => {
   it("an east-edge tile has a hex neighbour on the west edge on a wrapping map, not on a flat one", () => {
     const width = 8;
     const eastEdge = { q: width - 1, r: 3 };
     const wrapping = wrapContextFor("continents", width);
-    const flat = wrapContextFor("archipelago", width);
+    const flat = flatWrap(width);
 
     const wrappingNeighbourQs = neighbors(eastEdge, wrapping).map((n) => n.q);
     const flatNeighbourQs = neighbors(eastEdge, flat).map((n) => n.q);
@@ -23,7 +23,7 @@ describe("wraparound geometry (east-west seam)", () => {
     const westEdge = { q: 0, r: 3 };
     const eastEdge = { q: width - 1, r: 3 };
     const wrapping = wrapContextFor("continents", width);
-    const flat = wrapContextFor("archipelago", width);
+    const flat = flatWrap(width);
 
     const seamDistance = distance(westEdge, eastEdge, wrapping);
     const longWayRound = distance(westEdge, eastEdge, flat);

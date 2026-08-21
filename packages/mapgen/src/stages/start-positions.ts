@@ -181,6 +181,25 @@ export function generateStartPositions(
 ): StartPositionsResult {
   const numPlayers = params.numPlayers ?? DEFAULT_NUM_PLAYERS;
   const wrap = wrapContextFor(params.mapType, landmass.width);
+  return placeStartPositions(landmass, climate, resources, ctx, wrap, numPlayers);
+}
+
+/**
+ * The placement algorithm itself, wrap-agnostic: `generateStartPositions`
+ * resolves `wrap` from `params.mapType` and delegates here. Exported
+ * separately so tests can exercise candidate scoring and farthest-point
+ * sampling against an explicit `WrapContext` (e.g. a flat grid via
+ * `flatWrap()`) without needing a map type whose preset happens to be flat —
+ * every `MapType` wraps in v1 (see `MAP_TYPE_PRESETS`).
+ */
+export function placeStartPositions(
+  landmass: LandmassResult,
+  climate: ClimateResult,
+  resources: ResourcesResult,
+  ctx: StageContext,
+  wrap: WrapContext,
+  numPlayers: number = DEFAULT_NUM_PLAYERS,
+): StartPositionsResult {
   const allCandidates = buildCandidates(landmass, climate, resources, wrap);
   const pool = selectCandidatePool(allCandidates, landmass, numPlayers);
   const startPositions = farthestPointSample(pool, numPlayers, ctx, wrap);

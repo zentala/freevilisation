@@ -1,5 +1,5 @@
 import { createPrng, neighbors, distance, type WrapContext } from "@freevilisation/engine";
-import { generateStartPositions } from "./start-positions.js";
+import { generateStartPositions, placeStartPositions } from "./start-positions.js";
 import { generateLandmass } from "./landmass.js";
 import { generateClimate, TERRAIN } from "./climate.js";
 import { generateResources } from "./resources.js";
@@ -114,11 +114,15 @@ export function scriptedPrng(values: readonly number[]): ReturnType<typeof creat
 }
 
 /**
- * Test fixtures below use `mapType: "archipelago"` (non-wrapping) so their
- * hand-computed expected positions test the sampling ALGORITHM, not the
- * wraparound feature — wraparound gets its own dedicated tests.
+ * A flat (non-wrapping) `WrapContext` of the given width. Every real `MapType`
+ * wraps in v1 (see `MAP_TYPE_PRESETS`), so a test wanting a flat grid to
+ * isolate the sampling ALGORITHM from the wraparound feature builds this
+ * literal directly instead of picking a map type and hoping its preset is
+ * flat — wraparound gets its own dedicated tests.
  */
-const FIXTURE_MAP_TYPE = "archipelago";
+export function flatWrap(width: number): WrapContext {
+  return { isWraparoundX: false, width };
+}
 
 /**
  * Place `numPlayers` on a map built by hand: `land` lists the only land tiles,
@@ -135,12 +139,13 @@ export function placeOnHandMadeMap(
   const size = width * height;
   const isLand = new Array(size).fill(false);
   for (const { q, r } of land) isLand[r * width + q] = true;
-  return generateStartPositions(
-    { seed: 1, mapType: FIXTURE_MAP_TYPE, mapSize: "tiny", numPlayers },
+  return placeStartPositions(
     { width, height, elevation: new Array(size).fill(1), isLand },
     { terrainDefId: new Array(size).fill(terrain) },
     { resourceDefId: new Array(size).fill(null) },
     { prng: scriptedPrng(draws), onProgress: () => {} },
+    flatWrap(width),
+    numPlayers,
   ).startPositions;
 }
 
@@ -162,12 +167,13 @@ export function placeOnPaintedMap(
   for (const { q, r, id } of terrain) terrainDefId[r * width + q] = id;
   const resourceDefId = new Array(size).fill(null);
   for (const { q, r } of resources) resourceDefId[r * width + q] = "resource_probe";
-  return generateStartPositions(
-    { seed: 1, mapType: FIXTURE_MAP_TYPE, mapSize: "tiny", numPlayers },
+  return placeStartPositions(
     { width, height, elevation: new Array(size).fill(1), isLand: new Array(size).fill(true) },
     { terrainDefId },
     { resourceDefId },
     { prng: scriptedPrng(draws), onProgress: () => {} },
+    flatWrap(width),
+    numPlayers,
   ).startPositions;
 }
 
