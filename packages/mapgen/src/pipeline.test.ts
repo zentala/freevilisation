@@ -77,4 +77,21 @@ describe("generateMap", () => {
   it("onProgress omitted does not throw", () => {
     expect(() => generateMap({ seed: 1, mapType: "continents", mapSize: "tiny" })).not.toThrow();
   });
+
+  it("wires startPositions through to the result: on land, unique, numPlayers of them", () => {
+    const result = generateMap({ seed: 42, mapType: "continents", mapSize: "tiny", numPlayers: 6 });
+    expect(result.startPositions.length).toBe(6);
+    const seen = new Set<string>();
+    for (const { q, r } of result.startPositions) {
+      expect(result.isLand[r * result.width + q]).toBe(true);
+      const key = `${q},${r}`;
+      expect(seen.has(key)).toBe(false);
+      seen.add(key);
+    }
+  });
+
+  it("defaults to 4 start positions when numPlayers is omitted", () => {
+    const result = generateMap({ seed: 42, mapType: "continents", mapSize: "tiny" });
+    expect(result.startPositions.length).toBe(4);
+  });
 });

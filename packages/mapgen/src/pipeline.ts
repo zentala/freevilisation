@@ -10,6 +10,8 @@ import { generateClimate } from "./stages/climate.js";
 import { generateRivers } from "./stages/rivers.js";
 import { generateFeatures } from "./stages/features.js";
 import { generateResources } from "./stages/resources.js";
+import { generateStartPositions } from "./stages/start-positions.js";
+import type { StartPosition } from "./stages/start-positions.js";
 import { MAP_SIZES, MAP_TYPE_PRESETS } from "./config.js";
 
 /** The four supported map shapes. */
@@ -26,6 +28,8 @@ export interface MapGenParams {
   readonly mapType: MapType;
   /** Map size preset. */
   readonly mapSize: MapSize;
+  /** Number of players to place start positions for. Defaults to 4. */
+  readonly numPlayers?: number;
 }
 
 /** Context passed to every pipeline stage. */
@@ -72,6 +76,8 @@ export interface MapGenResult {
   readonly featureDefId: (FeatureDefId | null)[];
   /** Resource definition id per tile, index-aligned with `elevation`; null = no resource. */
   readonly resourceDefId: (ResourceDefId | null)[];
+  /** Fair, spread-out starting tile per player. */
+  readonly startPositions: StartPosition[];
 }
 
 /**
@@ -97,38 +103,56 @@ export function generateMap(
   const root = createPrng(params.seed);
   const landmassPrng = root.fork("landmass");
 
+  // Six stages share the 0-100 progress range in equal, monotonically
+  // increasing slices: [0,17], [17,33], [33,50], [50,67], [67,83], [83,100].
+  const SLICE_BOUNDARIES = [0, 17, 33, 50, 67, 83, 100] as const;
+  const sliceProgress =
+    (stageIdx: number) =>
+    (pct: number): void => {
+      const start = SLICE_BOUNDARIES[stageIdx]!;
+      const end = SLICE_BOUNDARIES[stageIdx + 1]!;
+      progress(start + Math.round(((end - start) * pct) / 100));
+    };
+
   progress(0);
   const landmass = generateLandmass(params, {
     prng: landmassPrng,
-    onProgress: (pct) => progress(Math.round(pct * 0.2)),
+    onProgress: sliceProgress(0),
   });
-  progress(20);
+  progress(SLICE_BOUNDARIES[1]);
 
   const climatePrng = root.fork("climate");
   const climate = generateClimate(params, landmass, {
     prng: climatePrng,
-    onProgress: (pct) => progress(20 + Math.round(pct * 0.2)),
+    onProgress: sliceProgress(1),
   });
-  progress(40);
+  progress(SLICE_BOUNDARIES[2]);
 
   const riversPrng = root.fork("rivers");
   const rivers = generateRivers(params, landmass, {
     prng: riversPrng,
-    onProgress: (pct) => progress(40 + Math.round(pct * 0.2)),
+    onProgress: sliceProgress(2),
   });
-  progress(60);
+  progress(SLICE_BOUNDARIES[3]);
 
   const featuresPrng = root.fork("features");
   const features = generateFeatures(params, climate, {
     prng: featuresPrng,
-    onProgress: (pct) => progress(60 + Math.round(pct * 0.2)),
+    onProgress: sliceProgress(3),
   });
-  progress(80);
+  progress(SLICE_BOUNDARIES[4]);
 
   const resourcesPrng = root.fork("resources");
   const resources = generateResources(params, climate, landmass, {
     prng: resourcesPrng,
-    onProgress: (pct) => progress(80 + Math.round(pct * 0.2)),
+    onProgress: sliceProgress(4),
+  });
+  progress(SLICE_BOUNDARIES[5]);
+
+  const startPositionsPrng = root.fork("start-positions");
+  const startPositions = generateStartPositions(params, landmass, climate, resources, {
+    prng: startPositionsPrng,
+    onProgress: sliceProgress(5),
   });
   progress(100);
 
@@ -145,5 +169,6 @@ export function generateMap(
     hasRiver: rivers.hasRiver,
     featureDefId: features.featureDefId,
     resourceDefId: resources.resourceDefId,
+    startPositions: startPositions.startPositions,
   };
 }
