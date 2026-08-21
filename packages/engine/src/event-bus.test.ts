@@ -76,6 +76,32 @@ describe("EventBus", () => {
     expect(received).toEqual([e1, e2]);
   });
 
+  it("a throwing listener reports to onListenerError without stopping others", () => {
+    const errors: unknown[] = [];
+    const bus = new EventBus({ onListenerError: (error) => errors.push(error) });
+    const received: GameEvent[] = [];
+    const thrown = new Error("boom");
+
+    bus.on(() => {
+      throw thrown;
+    });
+    bus.on((e) => received.push(e));
+
+    const event = moved("0,0", "1,0");
+    bus.emit([event]);
+
+    expect(errors).toEqual([thrown]);
+    expect(received).toEqual([event]);
+  });
+
+  it("without onListenerError a throwing listener stays silent", () => {
+    const bus = new EventBus();
+    bus.on(() => {
+      throw new Error("boom");
+    });
+    expect(() => bus.emit([moved("0,0", "1,0")])).not.toThrow();
+  });
+
   it("clear() drops everything", () => {
     const bus = new EventBus();
     const spy = vi.fn();

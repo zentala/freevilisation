@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { serialize, deserialize, stateHash } from "./serialization.js";
-import { createInitialGameState } from "./game-state.js";
-import { Registry } from "./registry.js";
-import { makeEntityId } from "./ids.js";
-import { Unit } from "./entities/Unit.js";
-import { City } from "./entities/City.js";
-import { Tile } from "./entities/Tile.js";
-import type { GameSettings } from "./game-state.js";
-import type { HexKey, UnitDefId, PlayerId, UnitId, CityId } from "./ids.js";
+import { serialize, deserialize, stateHash, SerializationError } from "./index.js";
+import { createInitialGameState } from "../game-state.js";
+import { Registry } from "../registry.js";
+import { makeEntityId } from "../ids.js";
+import { Unit } from "../entities/Unit.js";
+import { City } from "../entities/City.js";
+import { Tile } from "../entities/Tile.js";
+import type { GameSettings } from "../game-state.js";
+import type { HexKey, UnitDefId, PlayerId, UnitId, CityId } from "../ids.js";
 
 const EMPTY_REGISTRY = Registry.load({
   units: [],
@@ -15,6 +15,17 @@ const EMPTY_REGISTRY = Registry.load({
   terrains: [],
   techs: [],
   civs: [],
+});
+
+// Matches every defId used by `makeNonTrivialState` below — deserialize
+// validates defIds against the registry, so a round-trip needs one that
+// actually knows about them.
+const FIXTURE_REGISTRY = Registry.load({
+  units: [{ id: "def_unit:warrior" as never }],
+  buildings: [],
+  terrains: [{ id: "def_terrain:grassland" as never }, { id: "def_terrain:plains" as never }],
+  techs: [],
+  civs: [{ id: "def_civ:rome" as never }],
 });
 
 const DEFAULT_SETTINGS: GameSettings = {
@@ -148,7 +159,7 @@ describe("deserialize", () => {
   it("round-trip: deserialize(serialize(state)) produces identical serialize output", () => {
     const state = makeNonTrivialState();
     const original = serialize(state);
-    const restored = deserialize(original, EMPTY_REGISTRY);
+    const restored = deserialize(original, FIXTURE_REGISTRY);
     const reSerialized = serialize(restored);
     expect(reSerialized).toBe(original);
   });
@@ -156,7 +167,7 @@ describe("deserialize", () => {
   it("restored state has correct types for entities", () => {
     const state = makeNonTrivialState();
     const json = serialize(state);
-    const restored = deserialize(json, EMPTY_REGISTRY);
+    const restored = deserialize(json, FIXTURE_REGISTRY);
     const unitIds = Object.keys(restored.entities.units);
     expect(unitIds.length).toBe(1);
     const unit = restored.entities.units[unitIds[0]! as UnitId] as Unit;
@@ -167,12 +178,26 @@ describe("deserialize", () => {
   it("restored city is a City instance", () => {
     const state = makeNonTrivialState();
     const json = serialize(state);
-    const restored = deserialize(json, EMPTY_REGISTRY);
+    const restored = deserialize(json, FIXTURE_REGISTRY);
     const cityIds = Object.keys(restored.entities.cities);
     expect(cityIds.length).toBe(1);
     const city = restored.entities.cities[cityIds[0]! as CityId] as City;
     expect(city).toBeInstanceOf(City);
     expect(city.name).toBe("Rome");
+  });
+
+  it("throws SerializationError when a field has the wrong type", () => {
+    const state = makeNonTrivialState();
+    const json = serialize(state);
+    const parsed = JSON.parse(json) as { turn: unknown };
+    parsed.turn = "not-a-number";
+    expect(() => deserialize(JSON.stringify(parsed), FIXTURE_REGISTRY)).toThrow(SerializationError);
+  });
+
+  it("throws SerializationError when a unit references an unknown defId", () => {
+    const state = makeNonTrivialState();
+    const json = serialize(state);
+    expect(() => deserialize(json, EMPTY_REGISTRY)).toThrow(SerializationError);
   });
 });
 

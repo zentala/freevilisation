@@ -18,7 +18,7 @@
 import type { GameState } from "../game-state.js";
 import type { Command, GameEvent } from "../commands/types.js";
 import { GameSession } from "../game-session.js";
-import { stateHash } from "../serialization.js";
+import { stateHash } from "../serialization/index.js";
 
 export interface DeterminismRun {
   readonly hash: string;
