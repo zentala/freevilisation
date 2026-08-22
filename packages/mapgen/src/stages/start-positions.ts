@@ -180,7 +180,7 @@ export function generateStartPositions(
   ctx: StageContext,
 ): StartPositionsResult {
   const numPlayers = params.numPlayers ?? DEFAULT_NUM_PLAYERS;
-  const wrap = wrapContextFor(params.mapType, landmass.width);
+  const wrap = wrapContextFor(landmass.width);
   return placeStartPositions(landmass, climate, resources, ctx, wrap, numPlayers);
 }
 

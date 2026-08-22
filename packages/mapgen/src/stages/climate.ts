@@ -88,7 +88,7 @@ export function generateClimate(
   ctx: StageContext,
 ): ClimateResult {
   const { width, height, isLand } = landmass;
-  const wrap = wrapContextFor(params.mapType, width);
+  const wrap = wrapContextFor(width);
   const moistureSeed = drawSeed(ctx.prng.fork("moisture"));
 
   ctx.onProgress(0);

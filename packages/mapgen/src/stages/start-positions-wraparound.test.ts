@@ -8,7 +8,7 @@ describe("wraparound geometry (east-west seam)", () => {
   it("an east-edge tile has a hex neighbour on the west edge on a wrapping map, not on a flat one", () => {
     const width = 8;
     const eastEdge = { q: width - 1, r: 3 };
-    const wrapping = wrapContextFor("continents", width);
+    const wrapping = wrapContextFor(width);
     const flat = flatWrap(width);
 
     const wrappingNeighbourQs = neighbors(eastEdge, wrapping).map((n) => n.q);
@@ -22,7 +22,7 @@ describe("wraparound geometry (east-west seam)", () => {
     const width = 8;
     const westEdge = { q: 0, r: 3 };
     const eastEdge = { q: width - 1, r: 3 };
-    const wrapping = wrapContextFor("continents", width);
+    const wrapping = wrapContextFor(width);
     const flat = flatWrap(width);
 
     const seamDistance = distance(westEdge, eastEdge, wrapping);

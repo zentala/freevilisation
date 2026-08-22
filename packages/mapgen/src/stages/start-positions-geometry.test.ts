@@ -29,7 +29,7 @@ describe("generateStartPositions — hex geometry (neighbours and distance)", ()
   it("minimum pairwise hex distance has a floor", () => {
     const params = makeParams({ mapSize: "standard", numPlayers: 4 });
     const { landmass, startPositions } = runStartPositions(params);
-    const wrap = wrapContextFor(params.mapType, landmass.width);
+    const wrap = wrapContextFor(landmass.width);
     const d = minPairwiseHexDistance(startPositions.startPositions, wrap);
     expect(d).toBeGreaterThanOrEqual(2);
   });

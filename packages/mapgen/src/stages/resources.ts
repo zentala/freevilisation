@@ -90,7 +90,7 @@ export function generateResources(
   ctx: StageContext,
 ): ResourcesResult {
   const { width, height } = landmass;
-  const wrap = wrapContextFor(params.mapType, width);
+  const wrap = wrapContextFor(width);
   const tileCount = width * height;
   const resourceDefId = new Array<ResourceDefId | null>(tileCount).fill(null);
   const placedPositions = new Map<ResourceDefId, Array<[number, number]>>();

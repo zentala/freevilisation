@@ -21,7 +21,7 @@ describe("generateStartPositions — terrain and resource quality", () => {
     // straight through to every land tile and picks quality-0 ground.
     const params = makeParams({ mapSize: "tiny", numPlayers: 300 });
     const { landmass, climate, resources, startPositions } = runStartPositions(params);
-    const wrap = wrapContextFor(params.mapType, landmass.width);
+    const wrap = wrapContextFor(landmass.width);
     const scores = startPositions.startPositions.map(({ q, r }) =>
       expectedScore(q, r, landmass, climate, resources, wrap),
     );

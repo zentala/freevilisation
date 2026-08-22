@@ -159,7 +159,7 @@ export function generateMap(
     mapSize: params.mapSize,
     width: landmass.width,
     height: landmass.height,
-    isWraparoundX: wrapContextFor(params.mapType, landmass.width).isWraparoundX,
+    isWraparoundX: wrapContextFor(landmass.width).isWraparoundX,
     elevation: landmass.elevation,
     isLand: landmass.isLand,
     terrainDefId: climate.terrainDefId,

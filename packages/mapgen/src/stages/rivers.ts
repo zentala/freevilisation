@@ -40,7 +40,7 @@ export function generateRivers(
   ctx: StageContext,
 ): RiversResult {
   const { width, height, elevation, isLand } = landmass;
-  const wrap = wrapContextFor(params.mapType, width);
+  const wrap = wrapContextFor(width);
   const total = width * height;
   const hasRiver = new Array<boolean>(total).fill(false);
 

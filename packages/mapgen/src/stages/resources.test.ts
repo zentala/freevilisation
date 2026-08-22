@@ -90,7 +90,7 @@ describe("generateResources", () => {
     const { landmass, resources } = runResources(params);
     const placed: Record<string, Array<[number, number]>> = {};
     const { width } = landmass;
-    const wrap = wrapContextFor(params.mapType, width);
+    const wrap = wrapContextFor(width);
 
     for (let i = 0; i < landmass.isLand.length; i++) {
       const rid = resources.resourceDefId[i]!;

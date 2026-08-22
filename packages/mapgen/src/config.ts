@@ -28,18 +28,6 @@ export interface MapTypePreset {
   readonly lacunarity: number;
   /** Elevation threshold above which a tile is land. */
   readonly landThreshold: number;
-  /**
-   * Whether this map type wraps east-west, joining the two vertical edges
-   * into a cylinder. Every `MapType` wraps in v1: a player who learns that
-   * sailing west brings them back from the east should not find that untrue
-   * on one map type, and a non-wrapping branch left unexercised in
-   * production is exactly where the square-grid bug hid before (ADR-017).
-   * The field stays data-driven rather than a hardcoded `true` so a future
-   * flat-world map type or custom-map option is a data change, not a code
-   * change — do not delete it as dead weight, and do not flip a preset to
-   * `false` without reading this comment first.
-   */
-  readonly isWraparoundX: boolean;
 }
 
 /** Per-map-type noise presets. */
@@ -53,7 +41,6 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     landThreshold: 0.52,
-    isWraparoundX: true,
   },
   pangaea: {
     continentFrequency: 1,
@@ -64,7 +51,6 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     landThreshold: 0.45,
-    isWraparoundX: true,
   },
   archipelago: {
     continentFrequency: 8,
@@ -75,7 +61,6 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     landThreshold: 0.58,
-    isWraparoundX: true,
   },
   islands: {
     continentFrequency: 16,
@@ -86,11 +71,28 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     landThreshold: 0.64,
-    isWraparoundX: true,
   },
 };
 
-/** Builds the `WrapContext` a map type's stages should use for a given width. */
-export function wrapContextFor(mapType: MapType, width: number): WrapContext {
-  return { isWraparoundX: MAP_TYPE_PRESETS[mapType].isWraparoundX, width };
+/**
+ * The shape of the world, which is not the same question as where its land
+ * lies. `continents` and `archipelago` describe how the landmass generator
+ * distributes ground; the topology below describes the planet those shapes
+ * sit on. Keeping the two apart is why this is not a field on
+ * `MapTypePreset`: coupling them once already let a map type quietly decide
+ * a world property, and the flat branch that nothing exercised is where the
+ * square-grid bug hid (ADR-017, ADR-021).
+ */
+export type WorldTopology = "cylinder" | "flat";
+
+/**
+ * Every world is a cylinder in v1 — sailing west always brings you back from
+ * the east. A flat world stays expressible so adding the option later is a
+ * value passed in, not a change to the geometry code.
+ */
+export const DEFAULT_WORLD_TOPOLOGY: WorldTopology = "cylinder";
+
+/** Builds the `WrapContext` every stage should use for a given map width. */
+export function wrapContextFor(width: number, topology: WorldTopology = DEFAULT_WORLD_TOPOLOGY): WrapContext {
+  return { isWraparoundX: topology === "cylinder", width };
 }
