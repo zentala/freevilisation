@@ -68,6 +68,7 @@ export { cubeS, toHexKey, fromHexKey, coordsEqual } from "./hex/coords.js";
 
 export {
   AXIAL_DIRECTIONS,
+  OWNED_EDGE_DIRECTIONS,
   neighbor,
   neighbors,
   distance,
@@ -86,3 +87,5 @@ export { buildGameMap, getTile, hasTile, toWrapContext } from "./hex/game-map.js
 
 export type { IsPassable, CostFn } from "./hex/graph.js";
 export { neighborsOf, edgeCost } from "./hex/graph.js";
+
+export { hasRiverEdge } from "./hex/river-edges.js";

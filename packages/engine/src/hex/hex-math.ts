@@ -15,6 +15,16 @@ export const AXIAL_DIRECTIONS: readonly AxialCoord[] = [
 ] as const;
 
 /**
+ * How many of the six edge directions a tile owns storage for: 0, 1, 2.
+ * The edge in direction `d >= OWNED_EDGE_DIRECTIONS` is owned by the
+ * neighbour in that direction, at that neighbour's own index
+ * `d - OWNED_EDGE_DIRECTIONS` — directions `d` and `(d + 3) % 6` are
+ * opposites, so every edge has exactly one owner. See DATA-MODEL.md
+ * "River edges" and ADR-026.
+ */
+export const OWNED_EDGE_DIRECTIONS = 3;
+
+/**
  * Optional context for east-west cylinder wrap.
  * The world wraps on `q` only — never on `r`. A cylinder, not a torus.
  */

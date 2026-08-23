@@ -115,6 +115,8 @@ function makeNonTrivialState() {
     null,
     null,
     false,
+    false,
+    false,
     null,
     playerId,
     null,
@@ -129,6 +131,8 @@ function makeNonTrivialState() {
     null,
     null,
     null,
+    true,
+    false,
     true,
     null,
     playerId,
@@ -173,6 +177,14 @@ describe("deserialize", () => {
     const unit = restored.entities.units[unitIds[0]! as UnitId] as Unit;
     expect(unit).toBeInstanceOf(Unit);
     expect(unit.hp).toBe(100);
+  });
+
+  it("round-trip preserves all three river edge flags per tile", () => {
+    const restored = deserialize(serialize(makeNonTrivialState()), FIXTURE_REGISTRY);
+    const t00 = restored.map.tiles["0,0" as HexKey]!;
+    const t11 = restored.map.tiles["1,1" as HexKey]!;
+    expect([t00.riverEdge0, t00.riverEdge1, t00.riverEdge2]).toEqual([false, false, false]);
+    expect([t11.riverEdge0, t11.riverEdge1, t11.riverEdge2]).toEqual([true, false, true]);
   });
 
   it("restored city is a City instance", () => {

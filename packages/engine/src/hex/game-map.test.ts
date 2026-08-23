@@ -15,6 +15,8 @@ function makeTile(coord: AxialCoord): Tile {
     null,
     null,
     false,
+    false,
+    false,
     null,
     null,
     null,

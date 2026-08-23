@@ -1,11 +1,23 @@
-import { neighbors } from "@freevilisation/engine";
+import { neighbors, OWNED_EDGE_DIRECTIONS } from "@freevilisation/engine";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { LandmassResult } from "./landmass.js";
 import { wrapContextFor } from "../config.js";
 
+/**
+ * A river runs along a hex EDGE, not on a tile (ADR-026). Each tile owns
+ * storage for the three edges in directions 0, 1, 2 (`AXIAL_DIRECTIONS`
+ * order); the other three are read from the neighbour that owns them, via
+ * `hasRiverEdge`. Three parallel arrays rather than one packed 3-bit value:
+ * index-aligned with `elevation`/`isLand` like every other mapgen array, so
+ * a consumer never has to unpack a bitmask to read a single flag.
+ */
 export interface RiversResult {
-  /** Per-tile river flag, length = width * height, index-aligned with elevation. */
-  readonly hasRiver: boolean[];
+  /** River flag on the edge this tile owns in direction 0. */
+  readonly riverEdgeDir0: boolean[];
+  /** River flag on the edge this tile owns in direction 1. */
+  readonly riverEdgeDir1: boolean[];
+  /** River flag on the edge this tile owns in direction 2. */
+  readonly riverEdgeDir2: boolean[];
 }
 
 /**
@@ -24,6 +36,23 @@ function stepBound(width: number, height: number): number {
   return width + height;
 }
 
+/** Marks the river flag on the edge owned by `ownerIdx` in `ownedDirection` (0..2). */
+function markEdge(rivers: RiversResult, ownerIdx: number, ownedDirection: number): void {
+  switch (ownedDirection) {
+    case 0:
+      rivers.riverEdgeDir0[ownerIdx] = true;
+      return;
+    case 1:
+      rivers.riverEdgeDir1[ownerIdx] = true;
+      return;
+    case 2:
+      rivers.riverEdgeDir2[ownerIdx] = true;
+      return;
+    default:
+      throw new Error(`ownedDirection must be 0..2, got ${ownedDirection}`);
+  }
+}
+
 /**
  * Generate rivers by simulating downhill flow from elevation maxima to coast.
  *
@@ -31,8 +60,8 @@ function stepBound(width: number, height: number): number {
  * 1. Select land tiles in the top 10% elevation percentile as candidates.
  * 2. Randomly pick a bounded subset as actual river sources.
  * 3. From each source, trace downhill to the lowest unvisited hex neighbor,
- *    marking `hasRiver = true` along the path, stopping at coast, local
- *    minimum, or step bound.
+ *    marking the EDGE crossed on each step (not the destination tile),
+ *    stopping at coast, local minimum, or step bound.
  */
 export function generateRivers(
   params: MapGenParams,
@@ -42,7 +71,11 @@ export function generateRivers(
   const { width, height, elevation, isLand } = landmass;
   const wrap = wrapContextFor(width);
   const total = width * height;
-  const hasRiver = new Array<boolean>(total).fill(false);
+  const rivers: RiversResult = {
+    riverEdgeDir0: new Array<boolean>(total).fill(false),
+    riverEdgeDir1: new Array<boolean>(total).fill(false),
+    riverEdgeDir2: new Array<boolean>(total).fill(false),
+  };
 
   ctx.onProgress(0);
 
@@ -54,7 +87,7 @@ export function generateRivers(
 
   if (landIndices.length === 0) {
     ctx.onProgress(100);
-    return { hasRiver };
+    return rivers;
   }
 
   // Sort by elevation descending to find the top 10% percentile
@@ -96,29 +129,36 @@ export function generateRivers(
       // Find lowest unvisited neighbor
       let lowestIdx = -1;
       let lowestElev = Infinity;
+      let lowestDirection = -1;
 
-      for (const { q: nq, r: nr } of neighbors({ q, r }, wrap)) {
-        if (nr < 0 || nr >= height) continue;
-        if (!wrap.isWraparoundX && (nq < 0 || nq >= width)) continue;
+      neighbors({ q, r }, wrap).forEach(({ q: nq, r: nr }, direction) => {
+        if (nr < 0 || nr >= height) return;
+        if (!wrap.isWraparoundX && (nq < 0 || nq >= width)) return;
         const ni = nr * width + nq;
-        if (visited.has(ni)) continue;
+        if (visited.has(ni)) return;
         if (elevation[ni]! < lowestElev) {
           lowestElev = elevation[ni]!;
           lowestIdx = ni;
+          lowestDirection = direction;
         }
-      }
+      });
 
       // No lower neighbor → local minimum, stop
       if (lowestIdx === -1 || lowestElev >= currentElev) break;
 
-      // Mark the neighbor as river (only land tiles)
+      // Mark the edge crossed (only onto land tiles)
       if (!isLand[lowestIdx]!) break;
 
-      hasRiver[lowestIdx] = true;
+      if (lowestDirection < OWNED_EDGE_DIRECTIONS) {
+        markEdge(rivers, current, lowestDirection);
+      } else {
+        markEdge(rivers, lowestIdx, lowestDirection - OWNED_EDGE_DIRECTIONS);
+      }
+
       visited.add(lowestIdx);
       current = lowestIdx;
     }
   }
 
-  return { hasRiver };
+  return rivers;
 }

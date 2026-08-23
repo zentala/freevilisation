@@ -67,8 +67,14 @@ export interface MapGenResult {
   readonly isLand: boolean[];
   /** Terrain definition id per tile, index-aligned with `elevation`. */
   readonly terrainDefId: TerrainDefId[];
-  /** River flag per tile, index-aligned with `elevation`. */
-  readonly hasRiver: boolean[];
+  /**
+   * River flags for the three edges each tile owns (directions 0, 1, 2 —
+   * see ADR-026 and DATA-MODEL.md "River edges"), index-aligned with
+   * `elevation`.
+   */
+  readonly riverEdgeDir0: boolean[];
+  readonly riverEdgeDir1: boolean[];
+  readonly riverEdgeDir2: boolean[];
   /** Feature definition id per tile, index-aligned with `elevation`; null = no feature. */
   readonly featureDefId: (FeatureDefId | null)[];
   /** Resource definition id per tile, index-aligned with `elevation`; null = no resource. */
@@ -163,7 +169,9 @@ export function generateMap(
     elevation: landmass.elevation,
     isLand: landmass.isLand,
     terrainDefId: climate.terrainDefId,
-    hasRiver: rivers.hasRiver,
+    riverEdgeDir0: rivers.riverEdgeDir0,
+    riverEdgeDir1: rivers.riverEdgeDir1,
+    riverEdgeDir2: rivers.riverEdgeDir2,
     featureDefId: features.featureDefId,
     resourceDefId: resources.resourceDefId,
     startPositions: startPositions.startPositions,

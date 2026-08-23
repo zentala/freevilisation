@@ -44,6 +44,8 @@ function makeTile(id: number, hexKey: HexKey): Tile {
     null,
     null,
     false,
+    false,
+    false,
     null,
     null,
     null,

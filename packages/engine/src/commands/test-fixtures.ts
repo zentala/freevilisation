@@ -25,6 +25,8 @@ function makeTile(hexKey: HexKey, seq: number): Tile {
     null,
     null,
     false,
+    false,
+    false,
     null,
     null,
     null,
