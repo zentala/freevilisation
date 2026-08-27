@@ -1,8 +1,7 @@
-import { neighbors, type TerrainDefId, type WrapContext } from "@freevilisation/engine";
+import type { TerrainDefId } from "@freevilisation/engine";
 import { drawSeed, fractalNoise2D, percentileThreshold } from "../noise.js";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { LandmassResult } from "./landmass.js";
-import { wrapContextFor } from "../config.js";
 import { equatorWeight } from "../latitude.js";
 
 export const TERRAIN = {
@@ -119,25 +118,18 @@ function landTerrain(temp: number, moisture: number, cutoffs: ClimateCutoffs): T
   return TERRAIN.plains;
 }
 
-function isCoast(
-  q: number,
-  r: number,
-  width: number,
-  height: number,
-  isLand: boolean[],
-  wrap: WrapContext,
-): boolean {
-  for (const { q: nq, r: nr } of neighbors({ q, r }, wrap)) {
-    if (nr < 0 || nr >= height) continue;
-    if (!wrap.isWraparoundX && (nq < 0 || nq >= width)) continue;
-    if (isLand[nr * width + nq]!) return true;
-  }
-  return false;
-}
-
 /**
  * Generate terrain assignments from landmass data using latitude-based
  * temperature and a noise-driven moisture field.
+ *
+ * Every non-land tile gets `TERRAIN.ocean` here — a placeholder, not a
+ * classification. `water.ts`'s `generateWater` is the sole source of truth
+ * for coast vs. ocean vs. lake (E55-W1-T03): it recomputes the distinction
+ * from a distance-to-land BFS and overwrites this placeholder. Earlier
+ * versions of this stage classified coast tiles directly with a
+ * land-adjacency check; that logic could not distinguish a lake shore from
+ * an ocean shore and had no notion of shelf depth, so it moved to
+ * `water.ts` instead of growing here.
  */
 export function generateClimate(
   params: MapGenParams,
@@ -145,7 +137,6 @@ export function generateClimate(
   ctx: StageContext,
 ): ClimateResult {
   const { width, height, isLand } = landmass;
-  const wrap = wrapContextFor(width);
   const moistureSeed = drawSeed(ctx.prng.fork("moisture"));
 
   ctx.onProgress(0);
@@ -182,11 +173,7 @@ export function generateClimate(
   for (let r = 0; r < height; r++) {
     for (let q = 0; q < width; q++) {
       const idx = r * width + q;
-      terrainDefId[idx] = isLand[idx]!
-        ? landTerrain(temp[idx]!, moisture[idx]!, cutoffs)
-        : isCoast(q, r, width, height, isLand, wrap)
-          ? TERRAIN.coast
-          : TERRAIN.ocean;
+      terrainDefId[idx] = isLand[idx]! ? landTerrain(temp[idx]!, moisture[idx]!, cutoffs) : TERRAIN.ocean;
     }
   }
 

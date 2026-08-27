@@ -3,7 +3,7 @@ import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { LandmassResult } from "./landmass.js";
 import { TERRAIN, type ClimateResult } from "./climate.js";
 import { MAP_TYPE_PRESETS, wrapContextFor } from "../config.js";
-import { floodComponents, type FloodGrid } from "../flood.js";
+import { floodComponents, multiSourceDistance, type FloodGrid } from "../flood.js";
 import { drawSeed, fractalNoise2D } from "../noise.js";
 import { equatorWeight } from "../latitude.js";
 
@@ -20,7 +20,13 @@ export const TERRAIN_LAKE = "terrain_lake" as TerrainDefId;
 export const FEATURE_ICE = "feature_ice" as FeatureDefId;
 
 export interface WaterResult {
-  /** `climate.terrainDefId` with enclosed small water components reclassified as `terrain_lake`. */
+  /**
+   * Land tiles keep `climate.terrainDefId` unchanged; water tiles are
+   * reclassified from scratch here as `terrain_coast` (distance 1 from
+   * land), `terrain_ocean` (distance > 1), or `terrain_lake` (an enclosed
+   * small component, overriding either of the above). `climate.ts` no
+   * longer decides coast vs. ocean — this is the one place that does.
+   */
   readonly terrainDefId: TerrainDefId[];
   /**
    * `feature_ice` on ocean/coast tiles above the map type's latitude
@@ -30,6 +36,14 @@ export interface WaterResult {
    * `generateFeatures`.
    */
   readonly featureDefId: (FeatureDefId | null)[];
+  /**
+   * Hex-step distance from each tile to its nearest land tile, from the
+   * same BFS that decides coast vs. ocean (`0` on land). Stored rather than
+   * discarded once the coast/ocean split is made: the renderer wants more
+   * than two shelf tiers, and recomputing this pass later would mean
+   * another full grid traversal for a value already computed here.
+   */
+  readonly distanceToLand: number[];
 }
 
 /** Frequency/octave shape for the ragged ice-boundary noise, same order of magnitude as `features.ts`'s density noise. */
@@ -96,17 +110,24 @@ function touchesEdge(tiles: readonly number[], width: number, height: number): b
 }
 
 /**
- * Classifies water tiles into lake vs ocean.
+ * Classifies water tiles into coast, ocean and lake.
  *
- * Flood-fills every non-land tile into connected components on the
- * wraparound-aware hex grid (`flood.ts`). A component that touches no map
- * edge and is smaller than the map type's `maxLakeSize` becomes
- * `terrain_lake`; everything else keeps whatever `climate.ts` already
- * assigned it (`terrain_ocean` or `terrain_coast`). On a cylinder there is
- * no east/west edge, so "touches the edge" means the north or south row —
- * a component that wraps around the world and meets itself is still one
- * component with no edge tile at all, and is excluded from becoming a lake
- * only by size, which is why `maxLakeSize` must stay well below a map's
+ * Coast vs. ocean comes from a single multi-source BFS (`multiSourceDistance`
+ * in `flood.ts`) seeded from every land tile at once — one pass over the
+ * whole wraparound-aware grid, not one search per tile. A water tile one hex
+ * step from land becomes `terrain_coast`; everything farther stays
+ * `terrain_ocean` (Unciv's `spreadCoast()`, Freeciv's `smooth_water_depth()`).
+ * This supersedes whatever `climate.ts` assigned water tiles — `water.ts` is
+ * the one source of truth for coast vs. ocean.
+ *
+ * Lake vs. ocean is a separate question, decided by `floodComponents`: a
+ * connected water component that touches no map edge and is smaller than the
+ * map type's `maxLakeSize` becomes `terrain_lake`, overriding the
+ * coast/ocean call above regardless of its distance from land. On a cylinder
+ * there is no east/west edge, so "touches the edge" means the north or south
+ * row — a component that wraps around the world and meets itself is still
+ * one component with no edge tile at all, and is excluded from becoming a
+ * lake only by size, which is why `maxLakeSize` must stay well below a map's
  * total water tile count.
  *
  * Pure function of its inputs: no random draws, so the same tile arrays
@@ -124,7 +145,18 @@ export function generateWater(
 
   ctx.onProgress(0);
 
+  const landSeeds: number[] = [];
+  for (let idx = 0; idx < isLand.length; idx++) {
+    if (isLand[idx]!) landSeeds.push(idx);
+  }
+  const distanceToLand = multiSourceDistance(grid, landSeeds);
+
   const terrainDefId = climate.terrainDefId.slice();
+  for (let idx = 0; idx < terrainDefId.length; idx++) {
+    if (isLand[idx]!) continue;
+    terrainDefId[idx] = distanceToLand[idx] === 1 ? TERRAIN.coast : TERRAIN.ocean;
+  }
+
   const { componentTiles } = floodComponents(grid, (idx) => !isLand[idx]!);
 
   // componentTiles is already in row-major scan order, i.e. sorted by the
@@ -142,5 +174,5 @@ export function generateWater(
   const featureDefId = placeIce(width, height, terrainDefId, latitudeThreshold, icePrng);
 
   ctx.onProgress(100);
-  return { terrainDefId, featureDefId };
+  return { terrainDefId, featureDefId, distanceToLand };
 }

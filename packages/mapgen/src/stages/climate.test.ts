@@ -1,12 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { createPrng, neighbors } from "@freevilisation/engine";
+import { createPrng } from "@freevilisation/engine";
 import { generateClimate, TERRAIN } from "./climate.js";
 import { generateLandmass } from "./landmass.js";
-import { wrapContextFor } from "../config.js";
 import { percentileThreshold } from "../noise.js";
 import type { MapGenParams } from "../pipeline.js";
 
-const TERRAIN_IDS = Object.values(TERRAIN);
+/**
+ * `climate.ts` never assigns `TERRAIN.coast` — `water.ts` is the sole source
+ * of truth for coast vs. ocean (E55-W1-T03). Coast reachability and
+ * adjacency are covered by `water.test.ts` instead.
+ */
+const TERRAIN_IDS = Object.values(TERRAIN).filter((id) => id !== TERRAIN.coast);
 
 function makeParams(overrides?: Partial<MapGenParams>): MapGenParams {
   return {
@@ -45,12 +49,12 @@ describe("generateClimate", () => {
     expect(climate.terrainDefId.length).toBe(landmass.width * landmass.height);
   });
 
-  it("every ocean tile (isLand=false) gets terrain_ocean or terrain_coast", () => {
+  it("every ocean tile (isLand=false) gets terrain_ocean — water.ts reclassifies coast/lake later", () => {
     const params = makeParams();
     const { landmass, climate } = runClimate(params);
     for (let i = 0; i < landmass.isLand.length; i++) {
       if (!landmass.isLand[i]) {
-        expect([TERRAIN.ocean, TERRAIN.coast]).toContain(climate.terrainDefId[i]);
+        expect(climate.terrainDefId[i]).toBe(TERRAIN.ocean);
       }
     }
   });
@@ -72,7 +76,7 @@ describe("generateClimate", () => {
     }
   });
 
-  it("all seven terrain ids are reachable across a standard-size map", () => {
+  it("all six climate-owned terrain ids are reachable across a standard-size map", () => {
     const found = new Set<string>();
     for (const seed of [1, 42, 999]) {
       const params = makeParams({ seed, mapSize: "standard" });
@@ -84,32 +88,6 @@ describe("generateClimate", () => {
     for (const expected of TERRAIN_IDS) {
       expect(found.has(expected)).toBe(true);
     }
-  });
-
-  it("coast tiles are adjacent to at least one land tile (spot-check)", () => {
-    const params = makeParams({ mapSize: "small" });
-    const { landmass, climate } = runClimate(params);
-    const { width, height } = landmass;
-    const wrap = wrapContextFor(width);
-    let checked = 0;
-    for (let r = 0; r < height; r++) {
-      for (let q = 0; q < width; q++) {
-        const idx = r * width + q;
-        if (climate.terrainDefId[idx] !== TERRAIN.coast) continue;
-        let hasLandNeighbor = false;
-        for (const { q: nq, r: nr } of neighbors({ q, r }, wrap)) {
-          if (nr < 0 || nr >= height) continue;
-          if (!wrap.isWraparoundX && (nq < 0 || nq >= width)) continue;
-          if (landmass.isLand[nr * width + nq]!) {
-            hasLandNeighbor = true;
-            break;
-          }
-        }
-        expect(hasLandNeighbor).toBe(true);
-        checked++;
-      }
-    }
-    expect(checked).toBeGreaterThan(0);
   });
 
   it("snow-band share of land tiles stays close to its target quantile across different noise-octave presets", () => {

@@ -70,6 +70,12 @@ export interface MapGenResult {
   /** Terrain definition id per tile, index-aligned with `elevation`. */
   readonly terrainDefId: TerrainDefId[];
   /**
+   * Hex-step distance from each tile to its nearest land tile, `0` on land.
+   * Computed once by `water.ts`'s coastal-shelf BFS and kept for reuse
+   * rather than a second traversal (see `WaterResult.distanceToLand`).
+   */
+  readonly distanceToLand: number[];
+  /**
    * River flags for the three edges each tile owns (directions 0, 1, 2 —
    * see ADR-026 and DATA-MODEL.md "River edges"), index-aligned with
    * `elevation`.
@@ -183,6 +189,7 @@ function runStages(params: MapGenParams, progress: (pct: number) => void): MapGe
     elevation: landmass.elevation,
     isLand: landmass.isLand,
     terrainDefId: water.terrainDefId,
+    distanceToLand: water.distanceToLand,
     riverEdgeDir0: rivers.riverEdgeDir0,
     riverEdgeDir1: rivers.riverEdgeDir1,
     riverEdgeDir2: rivers.riverEdgeDir2,

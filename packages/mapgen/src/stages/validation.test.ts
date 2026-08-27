@@ -31,6 +31,7 @@ function makeResult(
     elevation: new Array<number>(total).fill(0.5),
     isLand,
     terrainDefId,
+    distanceToLand: isLand.map((land) => (land ? 0 : 1)),
     riverEdgeDir0: new Array<boolean>(total).fill(false),
     riverEdgeDir1: new Array<boolean>(total).fill(false),
     riverEdgeDir2: new Array<boolean>(total).fill(false),
