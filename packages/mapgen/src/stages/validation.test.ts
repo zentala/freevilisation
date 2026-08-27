@@ -52,49 +52,8 @@ function rect(width: number, q0: number, q1: number, r0: number, r1: number): nu
 }
 
 describe("validateMap", () => {
-  it("removes a single-tile island below MIN_ISLAND_SIZE, not a reroll", () => {
-    const width = 10;
-    const height = 10;
-    // A 40-tile mainland (rows 0-3) plus a lone tile far away (row 8): 41/100
-    // = 0.41 before repair, 40/100 = 0.40 after — both inside continents'
-    // 0.42 ± 0.1 tolerance.
-    const mainland = rect(width, 0, 10, 0, 4);
-    const island = [8 * width + 5];
-    const landTiles = new Set([...mainland, ...island]);
-    const result = makeResult(width, height, landTiles, {
-      startPositions: [{ q: 5, r: 1 }],
-    });
-
-    const outcome = validateMap(result);
-
-    expect(outcome.ok).toBe(true);
-    if (!outcome.ok) return;
-    const islandIndex = island[0]!;
-    expect(outcome.result.isLand[islandIndex]).toBe(false);
-    expect(outcome.result.terrainDefId[islandIndex]).toBe(OCEAN);
-    for (const i of mainland) expect(outcome.result.isLand[i]).toBe(true);
-  });
-
-  it("does not invoke reroll when the only issue is a repairable tiny island", () => {
-    const width = 10;
-    const height = 10;
-    const mainland = rect(width, 0, 10, 0, 4);
-    const island = [8 * width + 5];
-    const landTiles = new Set([...mainland, ...island]);
-    const fixture = makeResult(width, height, landTiles, {
-      startPositions: [{ q: 5, r: 1 }],
-    });
-    const generate = vi.fn(() => fixture);
-
-    const result = generateWithValidation(makeParams(), generate);
-
-    expect(generate).toHaveBeenCalledTimes(1);
-    expect(result.isLand[island[0]!]).toBe(false);
-  });
-
   it("rejects a stranded start and generateWithValidation rerolls with a forked seed until bound exceeded", () => {
-    // A single-tile "island" that always gets repaired away, stranding the
-    // start placed on it — a failure validateMap cannot fix locally.
+    // A malformed result with a water start must be rejected and rerolled.
     const width = 5;
     const height = 5;
     const landTiles = new Set([2 * width + 2]);

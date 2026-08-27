@@ -13,6 +13,7 @@ import { generateFeatures } from "./stages/features.js";
 import { generateResources } from "./stages/resources.js";
 import { generateStartPositions } from "./stages/start-positions.js";
 import type { StartPosition } from "./stages/start-positions.js";
+import { removeTinyIslands } from "./stages/tiny-islands.js";
 import { generateWithValidation } from "./stages/validation.js";
 import { MAP_SIZES, MAP_TYPE_PRESETS, wrapContextFor } from "./config.js";
 
@@ -133,10 +134,13 @@ function runStages(params: MapGenParams, progress: (pct: number) => void): MapGe
     };
 
   progress(0);
-  const landmass = generateLandmass(params, {
-    prng: landmassPrng,
-    onProgress: sliceProgress(0),
-  });
+  const landmass = removeTinyIslands(
+    generateLandmass(params, {
+      prng: landmassPrng,
+      onProgress: sliceProgress(0),
+    }),
+    wrapContextFor(MAP_SIZES[params.mapSize]!.width),
+  );
   progress(SLICE_BOUNDARIES[1]);
 
   const climatePrng = root.fork("climate");

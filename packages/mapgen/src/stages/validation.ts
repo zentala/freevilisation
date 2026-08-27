@@ -1,18 +1,12 @@
 import { createPrng, type WrapContext } from "@freevilisation/engine";
 import type { MapGenParams, MapGenResult } from "../pipeline.js";
 import { MAP_TYPE_PRESETS } from "../config.js";
-import { TERRAIN } from "./climate.js";
 import {
   floodComponents as sharedFloodComponents,
   type FloodGrid,
   type FloodResult,
 } from "../flood.js";
-
-/**
- * Connected-component tile count below which a landmass is deleted rather
- * than kept, mirroring Freeciv's `remove_tiny_islands()`.
- */
-export const MIN_ISLAND_SIZE = 3;
+import { MIN_ISLAND_SIZE } from "./tiny-islands.js";
 
 /** How far the actual land fraction may drift from the map type's target before the map is rejected. */
 export const LAND_FRACTION_TOLERANCE = 0.1;
@@ -37,64 +31,14 @@ export interface ValidationFailure {
 
 export type ValidationOutcome = ValidationSuccess | ValidationFailure;
 
-interface RepairedMap {
-  readonly isLand: boolean[];
-  readonly terrainDefId: MapGenResult["terrainDefId"];
-  readonly featureDefId: MapGenResult["featureDefId"];
-  readonly resourceDefId: MapGenResult["resourceDefId"];
-  readonly riverEdgeDir0: boolean[];
-  readonly riverEdgeDir1: boolean[];
-  readonly riverEdgeDir2: boolean[];
-  readonly repaired: boolean;
-}
-
-/** Converts every tile in an undersized landmass to ocean, clearing its climate/feature/river/resource state. */
-function repairTinyIslands(result: MapGenResult, flood: FloodResult): RepairedMap {
-  const isLand = result.isLand.slice();
-  const terrainDefId = result.terrainDefId.slice();
-  const featureDefId = result.featureDefId.slice();
-  const resourceDefId = result.resourceDefId.slice();
-  const riverEdgeDir0 = result.riverEdgeDir0.slice();
-  const riverEdgeDir1 = result.riverEdgeDir1.slice();
-  const riverEdgeDir2 = result.riverEdgeDir2.slice();
-
-  let repaired = false;
-  for (let i = 0; i < isLand.length; i++) {
-    const id = flood.componentId[i]!;
-    if (id === -1 || flood.componentSize[id]! >= MIN_ISLAND_SIZE) continue;
-    isLand[i] = false;
-    terrainDefId[i] = TERRAIN.ocean;
-    featureDefId[i] = null;
-    resourceDefId[i] = null;
-    riverEdgeDir0[i] = false;
-    riverEdgeDir1[i] = false;
-    riverEdgeDir2[i] = false;
-    repaired = true;
-  }
-
-  return {
-    isLand,
-    terrainDefId,
-    featureDefId,
-    resourceDefId,
-    riverEdgeDir0,
-    riverEdgeDir1,
-    riverEdgeDir2,
-    repaired,
-  };
-}
-
-/** Reports a start position whose landmass the repair pass just removed, if any. */
-function findStrandedStart(
-  result: MapGenResult,
-  isLand: readonly boolean[],
-): ValidationFailure | undefined {
+/** Reports a start position that is not on land. */
+function findStrandedStart(result: MapGenResult): ValidationFailure | undefined {
   for (const start of result.startPositions) {
     const idx = start.r * result.width + start.q;
-    if (!isLand[idx]) {
+    if (!result.isLand[idx]) {
       return {
         ok: false,
-        reason: `start position (${start.q},${start.r}) stranded: its landmass was removed as an undersized island`,
+        reason: `start position (${start.q},${start.r}) is not on land`,
       };
     }
   }
@@ -139,34 +83,21 @@ function checkPangaeaShape(
 /**
  * Post-pipeline sanity pass over a generated map.
  *
- * Repairs the common case locally: undersized landmasses (below
- * `MIN_ISLAND_SIZE` tiles) are converted to ocean rather than triggering a
- * reroll. Only failures a local repair cannot fix are reported as
- * rejections: a start position stranded by that repair, a land/water ratio
- * outside the map type's bounds, or a `pangaea` map that rolled more than
- * one large landmass.
+ * Tiny islands have already been removed before terrain classification.
+ * This pass rejects a stranded start, a land/water ratio outside the map
+ * type's bounds, or a `pangaea` map that rolled multiple large landmasses.
  */
 export function validateMap(result: MapGenResult): ValidationOutcome {
   const wrap: WrapContext = { isWraparoundX: result.isWraparoundX, width: result.width };
   const grid: FloodGrid = { width: result.width, height: result.height, wrap };
-  const isLand = result.isLand;
-  const flood = sharedFloodComponents(grid, (idx) => isLand[idx]!);
-  const repair = repairTinyIslands(result, flood);
+  const flood = sharedFloodComponents(grid, (idx) => result.isLand[idx]!);
 
   const failure =
-    findStrandedStart(result, repair.isLand) ??
-    checkLandFraction(result, repair.isLand) ??
-    checkPangaeaShape(result, repair.isLand, flood);
+    findStrandedStart(result) ??
+    checkLandFraction(result, result.isLand) ??
+    checkPangaeaShape(result, result.isLand, flood);
   if (failure) return failure;
-
-  if (!repair.repaired) {
-    return { ok: true, result };
-  }
-  const { repaired: _repaired, ...patch } = repair;
-  return {
-    ok: true,
-    result: { ...result, ...patch },
-  };
+  return { ok: true, result };
 }
 
 /**

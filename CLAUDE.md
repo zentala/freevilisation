@@ -1,101 +1,120 @@
-# Working in this repo
+# AGENTS.md — rules for coding agents in this repo
 
-Instructions for AI agents and for anyone new to the codebase. Short on
-purpose: these are the rules that have already been broken once and cost
-real time. Everything else lives in the design documents.
+## Scope
 
-## Build before you test
+Work ONLY inside the directory you were started in. Never touch files outside
+it, never `git merge`, never `git push`. The orchestrating agent merges.
 
-Packages import each other through their `exports` field, which points at a
-gitignored `dist/`. `vitest` therefore cannot resolve `@freevilisation/engine`
-from `@freevilisation/mapgen` until the workspace is built.
+## What this repo is
 
-```bash
-pnpm install
-pnpm run build      # tsc --build — required before the next line
-pnpm run test
-```
+Browser-based, turn-based 4X strategy game (Civ-like), AGPL-3.0, TypeScript
+pnpm monorepo. Planning lives in `.plan/` (a separate nested git repo,
+gitignored here) — read it, never commit to it from a worktree.
 
-If `pnpm run build` prints nothing and produces no `dist/`, it decided the
-build was up to date from a stale `*.tsbuildinfo`. `tsc --build` never
-deletes orphaned output and never notices that you removed `dist/` by hand:
+## Non-negotiable invariants
 
-```bash
-pnpm run clean      # tsc --build --clean
-pnpm run build
-```
+- `packages/engine` is **pure and deterministic**: no DOM, no `Date`, no
+  `Math.random`, no `window`/`document`/`fetch`/`WebSocket`. Seeded RNG only.
+  Same seed + same command list → same state, always.
+- Every `GameState` mutation is a serializable **Command**, never a direct
+  mutation.
+- Game content (units, buildings, techs, terrain) is **data, not code** —
+  zod-validated rulesets.
+- Package dependency directions are enforced by ESLint; do not work around
+  a boundary error by loosening the rule.
+- Entity ids are **branded**, and the brands are nominally distinct even though
+  the runtime value is the same string. `makeEntityId()` returns a plain
+  `EntityId`; assigning it to a narrower id needs an explicit cast —
+  `makeEntityId(state.nextEntitySeq) as CityId` (see
+  `packages/engine/src/commands/pipeline.ts:101`). The cast is the intended
+  shape, not a smell: it is the one place the narrowing is stated. Do not
+  "fix" it by widening the branded types.
 
-This is not a footnote. CI ran red for three pushes because the `test` job
-installed and ran `vitest` without building, and every failure read as
-"Failed to resolve entry for package @freevilisation/engine".
+## Code style
 
-## Hex geometry comes from the engine — always
+- Files ≤ 250 lines, functions ≤ 50 lines. Larger = split it. This is an
+  ESLint `max-lines` error, not a convention — split as you write, because
+  the build refuses the file either way. Test files are not exempt; the
+  oracles go in a `*.test-fixtures.ts` sibling.
+- Strict TypeScript. Prefer explicit types over `any`.
+- Self-documenting names; comment only non-obvious logic.
+- No speculative abstractions, no feature flags, no "simplified for now".
+- All code, comments, docs, commits in **English**.
 
-`@freevilisation/engine` owns hex math (ADR-017). Never hand-roll neighbour
-offsets, distance or ring logic anywhere else, in any package.
+## Package manager
 
-```ts
-// wrong — this is a square grid wearing hex coordinate names
-const NEIGHBORS = [
-  [0, -1],
-  [0, 1],
-  [-1, 0],
-  [1, 0],
-];
-const dist = Math.max(Math.abs(a.q - b.q), Math.abs(a.r - b.r));
+**pnpm only** — never npm, never yarn. Node version from `.nvmrc`.
 
-// right
-import { neighbors, distance, ring, toWrapContext } from "@freevilisation/engine";
-```
+This is a pnpm **workspace**, so an install at the repo root needs an explicit
+flag or pnpm refuses it:
 
-The failure mode is silent: four-offset neighbours and Chebyshev distance
-produce plausible-looking maps in which tiles two hexes apart count as
-adjacent and real axial neighbours are never visited. `packages/mapgen`
-shipped three stages that way before anyone noticed.
+| Where the dependency belongs                           | Command                                 |
+| ------------------------------------------------------ | --------------------------------------- |
+| Repo root (tooling: eslint, typescript, vitest config) | `pnpm add -Dw <pkg>`                    |
+| One package                                            | `pnpm --filter <pkg-name> add -D <pkg>` |
 
-Map wraparound is part of the geometry, not an extra. Take the wrap context
-from the map (`toWrapContext(map)`) and pass it to the hex helpers rather
-than assuming a flat rectangle.
+Without `-w` at the root you get `ERR_PNPM_ADDING_TO_ROOT` and nothing is
+installed. The guard exists because a dependency added to the root is invisible
+to the package that actually imports it, which breaks the build only later, in
+CI. Do not silence the warning with `ignore-workspace-root-check`.
 
-## Command validation is the game's only guard rail
+`dist/` is gitignored, so a fresh worktree has none. Cross-package imports
+(e.g. `packages/mapgen` importing `@freevilisation/engine`) resolve through
+`dist/`, not source — run `pnpm run build` right after `pnpm install`, before
+`pnpm run test`, or those imports fail with "Failed to resolve entry for
+package".
 
-Every state mutation goes through the command pipeline (ADR-005), and
-`validate()` is the only thing standing between a client and an illegal
-move. Validate the whole request, not the parts that are easy to check.
+## Testing
 
-A `MoveUnit` command carrying a path was checked for "every hex exists" and
-"the path is not longer than the unit's remaining moves" — but never for
-whether consecutive hexes are neighbours. A one-element path teleported a
-unit across the map for one move point. When you add a command, ask what an
-adversarial client could send, and write the test that sends it.
+- The full suite is `pnpm run test` at the repo root, and only that. **Never
+  `pnpm -r test`** — no workspace package defines a `test` script, so a
+  recursive run executes nothing and exits 0. It prints "Scope: 7 of 8
+  workspace projects" and reads exactly like a green full-suite run.
+- Test file basename must match its source file's basename:
+  `src/foo/Bar.ts` -> `tests/foo/Bar.test.ts` (per-file coverage gates key on this).
+- Coverage targets: pure functions (validators, normalizers, parsers) 100%;
+  business logic (services, commands, handlers) >=80%; UI components >=70%.
+- A regression test must FAIL when you manually re-apply the bug it claims to
+  cover. If it still passes with the bug restored, it is not testing the bug —
+  rewrite it to assert the actual observable property, not the absence of a
+  signal your method can't see anyway.
+- Do not defer tests to a final "write tests" task — write them alongside the
+  code in the same task. A final integration/E2E pass on top is fine.
 
-## Determinism is a hard constraint
+## TypeScript gotchas
 
-The engine and mapgen must produce identical results from identical seeds on
-every machine. ESLint blocks `Date`, `Math.random`, `window` and `fetch` in
-those packages — do not work around it. Randomness comes from the seeded PRNG
-(`createPrng`, ADR-016: mulberry32); iteration order over maps and sets must
-be made explicit before it affects output.
+- `tsc --noEmit` at the repo root can fail even when a package's own bundler
+  build (esbuild/vite/tsup) passes — they run under different `tsconfig`
+  settings. Run the root typecheck too; a green package build proves nothing
+  about it.
+- If a module moves from `x.ts` to `x/index.ts` (or back), `tsc` never deletes
+  the orphaned `dist/x.js`, and Node's resolution can silently prefer the
+  stale sibling file over the new directory — no build error, just old code
+  running. `rm -rf dist` before the next build whenever a file becomes a
+  directory or vice versa.
+- Prefer `globalThis.x` over `global.x` in test code that might run outside
+  Node's global scope.
+- Comparing timestamps requires the same unit on both sides — an ISO-8601
+  string compared against Unix-ms with `>=` silently evaluates to `NaN >=
+number` (always `false`), which looks like "no data" rather than a type
+  error. Normalize both sides to ms first.
 
-## Where the truth lives
+## Commits
 
-- **Architecture and decisions** — `.plan/ARCHITECTURE.md` and `.plan/ADR/`.
-- **Epic status** — each epic's own `EPIC.md`, plus `.plan/STATE.md` for the
-  current wave. `.plan/ORCHESTRATOR.md` carries points and dependencies, not
-  status; it drifted for five finished epics before this was separated.
-- **Known defects and follow-ups** — `.plan/BACKLOG.md`.
-- **Why something was changed after the fact** — `.plan/LESSONS.md`.
+Conventional Commits: `<type>(<scope>): <subject>`, subject ≤ 50 chars,
+imperative, no period. Types: feat, fix, docs, style, refactor, test, chore,
+perf. **Never add AI attribution** (no `Co-Authored-By: Claude`, no
+"Generated by AI").
 
-`.plan/` is gitignored in this repository and lives in its own private git
-repository. If you are working from a public clone, those files are simply
-absent — the rules on this page still apply.
+The active agent is the implementation agent. Implement the tasks from
+`.plan/` sequentially to completion, using the approved plan as the source of
+truth. Create a Conventional Commit after every completed plan task (at
+minimum, after every task belonging to an epic). Do not leave completed plan
+work uncommitted.
 
-## House rules
+## Done means verified
 
-- Conventional Commits (`feat(scope): subject`, imperative, ≤ 50 chars).
-  Never add AI attribution to a commit.
-- New file ≤ 250 lines, function ≤ 50 lines.
-- Tests live with the change, not in a "write tests" task at the end. A
-  regression test must fail when you revert the fix — check that it does.
-- Prose in documents and comments: plain words, active voice, no marketing
-  adjectives.
+A task is done when its acceptance criteria are met AND you have run the
+verify commands listed in `TASK.md` and seen them pass. A green build is
+necessary, never sufficient. Report failures honestly — do not claim success
+you did not observe.
