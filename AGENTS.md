@@ -112,6 +112,11 @@ truth. Create a Conventional Commit after every completed plan task (at
 minimum, after every task belonging to an epic). Do not leave completed plan
 work uncommitted.
 
+After completing each plan task, update the plan task list (`tasks.md`, or the
+corresponding task/status file when the plan is split by epic), then continue
+with the next task in order. Keep implementation and plan status synchronized
+before starting subsequent work.
+
 ## Done means verified
 
 A task is done when its acceptance criteria are met AND you have run the
