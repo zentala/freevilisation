@@ -119,6 +119,19 @@ describe("validateMap", () => {
     expect(seedsSeen[0]).toBe(7);
   });
 
+  it("rejects a land fraction outside the map type's tolerance", () => {
+    const width = 10;
+    const height = 10;
+    // All water: 0.0 land fraction, outside continents' 0.42 +/- 0.1 band.
+    const result = makeResult(width, height, new Set());
+
+    const outcome = validateMap(result);
+
+    expect(outcome.ok).toBe(false);
+    if (outcome.ok) return;
+    expect(outcome.reason).toContain("land fraction");
+  });
+
   it("rejects a pangaea map that rolled multiple large landmasses", () => {
     const width = 10;
     const height = 10;
