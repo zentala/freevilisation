@@ -90,7 +90,7 @@ describe("applyCommand — MoveUnit rejections", () => {
     expect(result.reason.code).toBe("illegal");
   });
 
-  it("rejects MoveUnit exceeding available moves", () => {
+  it("carries unaffordable trailing steps as a move order", () => {
     const state = makeBaseState();
     const result = applyCommand(state, {
       kind: "MoveUnit",
@@ -98,9 +98,11 @@ describe("applyCommand — MoveUnit rejections", () => {
       unitId: U1,
       path: ["1,0" as HexKey, "2,0" as HexKey, "2,1" as HexKey, "2,2" as HexKey],
     });
-    expect(result.ok).toBe(false);
-    if (result.ok) throw new Error("expected rejection");
-    expect(result.reason.code).toBe("illegal");
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("expected move");
+    expect(result.state.entities.units[U1]!.coord).toBe("2,1");
+    expect(result.state.entities.units[U1]!.movesLeft).toBe(0);
+    expect(result.state.entities.units[U1]!.moveOrder).toEqual(["2,2"]);
   });
 
   it("rejects MoveUnit to a distant hex named as the sole path entry (no teleporting)", () => {

@@ -21,6 +21,7 @@ export function reviveUnit(p: PlainEntity, registry: Registry): Unit {
     asNum(p.experience, "unit.experience"),
     asNum(p.fortifiedTurns, "unit.fortifiedTurns"),
     asBool(p.isEmbarked, "unit.isEmbarked"),
+    (p.moveOrder as HexKey[] | undefined) ?? [],
   );
 }
 

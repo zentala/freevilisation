@@ -41,6 +41,7 @@ export function refreshUnitMoves(
       unit.experience,
       unit.fortifiedTurns,
       unit.isEmbarked,
+      unit.moveOrder,
     );
   }
 

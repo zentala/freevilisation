@@ -12,6 +12,8 @@ export class Unit extends Entity {
   experience: number;
   fortifiedTurns: number;
   isEmbarked: boolean;
+  /** Remaining destination steps for a move order paused at turn boundary. */
+  moveOrder: HexKey[];
 
   constructor(
     id: EntityId,
@@ -26,6 +28,7 @@ export class Unit extends Entity {
     experience: number,
     fortifiedTurns: number,
     isEmbarked: boolean,
+    moveOrder: HexKey[] = [],
   ) {
     super(id, "unit", ownerId, createdTurn);
     this.defId = defId;
@@ -38,5 +41,6 @@ export class Unit extends Entity {
     this.experience = experience;
     this.fortifiedTurns = fortifiedTurns;
     this.isEmbarked = isEmbarked;
+    this.moveOrder = [...moveOrder];
   }
 }

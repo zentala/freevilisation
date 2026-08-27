@@ -1,11 +1,12 @@
 import type { GameState } from "../game-state.js";
 import type { Command, CommandResult, CommandRejection, GameEvent } from "./types.js";
-import type { HexKey } from "../ids.js";
+import type { HexKey, UnitId } from "../ids.js";
 import type { Unit } from "../entities/Unit.js";
 import { Unit as UnitClass } from "../entities/Unit.js";
 import { fromHexKey, toHexKey } from "../hex/coords.js";
 import { neighbors, type WrapContext } from "../hex/hex-math.js";
 import { toWrapContext } from "../hex/game-map.js";
+import { stepCost } from "../movement/step.js";
 
 /** Returns true if `to` is one of the six hex neighbours of `from`. */
 function isAdjacent(from: HexKey, to: HexKey, wrap: WrapContext): boolean {
@@ -47,15 +48,16 @@ export function validateMoveUnit(
       return { code: "illegal", message: `Unknown tile: ${hex}` };
     }
   }
-  if (command.path.length > unit.movesLeft) {
-    return { code: "illegal", message: "Not enough moves" };
-  }
   const badStep = findNonAdjacentStep(unit.coord, command.path, toWrapContext(state.map));
   if (badStep) {
     return {
       code: "illegal",
       message: `Path is not contiguous: ${badStep.to} is not adjacent to ${badStep.from}`,
     };
+  }
+  const firstCost = stepCost(state, unit.id as UnitId, unit.coord, command.path[0]!);
+  if (!Number.isFinite(firstCost) || firstCost > unit.movesLeft) {
+    return { code: "illegal", message: "First move exceeds available moves" };
   }
   return null;
 }
@@ -66,11 +68,18 @@ export function handleMoveUnit(
 ): CommandResult {
   const unit = state.entities.units[command.unitId]!;
   const prevCoord = unit.coord;
-  // Cost is 1 move point per step (placeholder until terrain movement
-  // cost lands, E10 — no per-tile cost function exists yet to run
-  // through `edgeCost` from hex/graph.ts).
-  const newMovesLeft = unit.movesLeft - command.path.length;
-  const to = command.path[command.path.length - 1]!;
+  let movesLeft = unit.movesLeft;
+  let traveledCount = 0;
+  while (traveledCount < command.path.length) {
+    const from = traveledCount === 0 ? unit.coord : command.path[traveledCount - 1]!;
+    const cost = stepCost(state, unit.id as UnitId, from, command.path[traveledCount]!);
+    if (!Number.isFinite(cost) || cost > movesLeft) break;
+    movesLeft -= cost;
+    traveledCount++;
+  }
+  const traveled = command.path.slice(0, traveledCount);
+  const newMovesLeft = movesLeft;
+  const to = traveled[traveled.length - 1] ?? unit.coord;
 
   const movedUnit = new UnitClass(
     unit.id,
@@ -85,6 +94,7 @@ export function handleMoveUnit(
     unit.experience,
     unit.fortifiedTurns,
     unit.isEmbarked,
+    command.path.slice(traveledCount),
   );
 
   const nextUnits = { ...state.entities.units, [command.unitId]: movedUnit };
