@@ -5,6 +5,7 @@ import type { ClimateResult } from "./climate.js";
 import type { ResourcesResult } from "./resources.js";
 import { TERRAIN } from "./climate.js";
 import { wrapContextFor } from "../config.js";
+import { normalizeStartPositions } from "./start-positions-normalize.js";
 
 /** Default player count when `MapGenParams.numPlayers` is omitted. */
 const DEFAULT_NUM_PLAYERS = 4;
@@ -20,7 +21,7 @@ const MAX_FLOOR_RELAXATIONS = 5;
  * fixture exists yet — see task notes). Ocean/coast are intentionally absent:
  * they are never candidate tiles (step 1 filters to land only).
  */
-const TERRAIN_QUALITY: Partial<Record<TerrainDefId, number>> = {
+export const TERRAIN_QUALITY: Partial<Record<TerrainDefId, number>> = {
   [TERRAIN.grassland]: 3,
   [TERRAIN.plains]: 2,
   [TERRAIN.tundra]: 1,
@@ -145,22 +146,27 @@ function pickTiedIndex(values: readonly number[], best: number, prng: { next(): 
  * Greedy farthest-point sampling: first pick is uniform random, every
  * subsequent pick maximizes the minimum distance to all chosen positions,
  * ties broken by PRNG draw (never array order, to avoid a north-west bias).
+ *
+ * Generic over any `{ q, r }`-bearing item so other stages (river sources,
+ * see `rivers.ts`) can reuse the same spacing algorithm instead of writing a
+ * second one — this is the only implementation of it in the codebase.
  */
-function farthestPointSample(
-  pool: Candidate[],
-  numPlayers: number,
+export function farthestPointSample<T extends { readonly q: number; readonly r: number }>(
+  pool: readonly T[],
+  count: number,
   ctx: StageContext,
   wrap: WrapContext,
-): StartPosition[] {
+): T[] {
   const remaining = pool.slice();
-  const chosen: Candidate[] = [];
+  const chosen: T[] = [];
 
   ctx.onProgress(0);
 
+  if (remaining.length === 0) return chosen;
   const firstIdx = Math.floor(ctx.prng.next() * remaining.length);
   chosen.push(remaining.splice(firstIdx, 1)[0]!);
 
-  while (chosen.length < numPlayers && remaining.length > 0) {
+  while (chosen.length < count && remaining.length > 0) {
     const minDistances = remaining.map((candidate) =>
       Math.min(...chosen.map((c) => distance(candidate, c, wrap))),
     );
@@ -169,7 +175,7 @@ function farthestPointSample(
     chosen.push(remaining.splice(pickIdx, 1)[0]!);
   }
 
-  return chosen.map(({ q, r }) => ({ q, r }));
+  return chosen;
 }
 
 export function generateStartPositions(
@@ -202,6 +208,17 @@ export function placeStartPositions(
 ): StartPositionsResult {
   const allCandidates = buildCandidates(landmass, climate, resources, wrap);
   const pool = selectCandidatePool(allCandidates, landmass, numPlayers);
-  const startPositions = farthestPointSample(pool, numPlayers, ctx, wrap);
+  const startPositions = farthestPointSample(pool, numPlayers, ctx, wrap).map(({ q, r }) => ({
+    q,
+    r,
+  }));
+  normalizeStartPositions(
+    startPositions,
+    landmass,
+    climate,
+    resources,
+    wrap,
+    ctx.prng.fork("normalize"),
+  );
   return { startPositions };
 }

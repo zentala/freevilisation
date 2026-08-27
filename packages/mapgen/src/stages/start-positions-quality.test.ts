@@ -12,6 +12,7 @@ import {
   wrapContextFor,
   flatWrap,
   EXPECTED_QUALITY,
+  scriptedPrng,
 } from "./start-positions.test-fixtures.js";
 
 describe("generateStartPositions — terrain and resource quality", () => {
@@ -110,7 +111,7 @@ describe("generateStartPositions — terrain and resource quality", () => {
       { width, height, elevation: new Array(size).fill(1), isLand },
       { terrainDefId: new Array(size).fill(TERRAIN.ocean) } as never,
       { resourceDefId: new Array(size).fill(null) } as never,
-      { prng: { next: () => 0 } as unknown as ReturnType<typeof createPrng>, onProgress: () => {} },
+      { prng: scriptedPrng([0]), onProgress: () => {} },
     );
     expect(startPositions.length).toBe(3);
   });
@@ -138,7 +139,7 @@ describe("generateStartPositions — terrain and resource quality", () => {
       { width, height, elevation: new Array(size).fill(1), isLand: new Array(size).fill(true) },
       { terrainDefId } as never,
       { resourceDefId: new Array(size).fill(null) } as never,
-      { prng: { next: () => 0 } as unknown as ReturnType<typeof createPrng>, onProgress: () => {} },
+      { prng: scriptedPrng([0]), onProgress: () => {} },
     );
 
     expect([...startPositions].sort(byPosition)).toEqual([
@@ -168,7 +169,7 @@ describe("generateStartPositions — terrain and resource quality", () => {
       { width, height, elevation: new Array(size).fill(1), isLand: new Array(size).fill(true) },
       { terrainDefId } as never,
       { resourceDefId: new Array(size).fill(null) } as never,
-      { prng: { next: () => 0 } as unknown as ReturnType<typeof createPrng>, onProgress: () => {} },
+      { prng: scriptedPrng([0]), onProgress: () => {} },
     );
     for (const { r } of startPositions) expect(r).toBe(0);
   });

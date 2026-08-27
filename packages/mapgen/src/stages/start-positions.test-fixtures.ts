@@ -108,9 +108,11 @@ export function uniformMap(width: number, height: number) {
  */
 export function scriptedPrng(values: readonly number[]): ReturnType<typeof createPrng> {
   let i = 0;
-  return {
+  const prng = {
     next: () => values[Math.min(i++, values.length - 1)]!,
-  } as unknown as ReturnType<typeof createPrng>;
+    fork: () => prng,
+  };
+  return prng as unknown as ReturnType<typeof createPrng>;
 }
 
 /**
