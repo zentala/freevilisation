@@ -2,7 +2,11 @@ import type { ReactElement } from "react";
 
 export interface EndTurnButtonProps {
   readonly idleUnitCount: number;
+  readonly idleUnitIds?: readonly string[];
   readonly onEndTurn: () => void;
+  readonly onFocusIdleUnit?: (unitId: string) => void;
+  readonly onNotify?: (message: string) => void;
+  readonly confirmEndTurnWithIdleUnits?: boolean;
   readonly disabled?: boolean;
   readonly isPlayerTurn?: boolean;
 }
@@ -10,18 +14,31 @@ export interface EndTurnButtonProps {
 /** Bottom-right turn control shared by the HUD and keyboard shortcuts. */
 export function EndTurnButton({
   idleUnitCount,
+  idleUnitIds = [],
   onEndTurn,
+  onFocusIdleUnit,
+  onNotify,
+  confirmEndTurnWithIdleUnits = true,
   disabled = false,
   isPlayerTurn = true,
 }: EndTurnButtonProps): ReactElement {
   const isDisabled = disabled || !isPlayerTurn;
+  const handleEndTurn = () => {
+    const firstIdleUnit = idleUnitIds[0];
+    if (confirmEndTurnWithIdleUnits && firstIdleUnit !== undefined) {
+      onFocusIdleUnit?.(firstIdleUnit);
+      onNotify?.("Unit needs orders");
+      return;
+    }
+    onEndTurn();
+  };
   return (
     <div className="pointer-events-auto fixed bottom-6 right-6 z-10">
       <button
         type="button"
         aria-label="End turn"
         disabled={isDisabled}
-        onClick={onEndTurn}
+        onClick={handleEndTurn}
         className="relative rounded-lg bg-amber-500 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
       >
         End turn
