@@ -4,12 +4,18 @@ export interface SelectedUnitPanelProps {
   readonly selectedUnitId: string | null;
   readonly idleUnitCount: number;
   readonly onNextIdleUnit: () => void;
+  readonly onSentry: () => void;
+  readonly onFortify: () => void;
+  readonly onSkip: () => void;
 }
 
 export function SelectedUnitPanel({
   selectedUnitId,
   idleUnitCount,
   onNextIdleUnit,
+  onSentry,
+  onFortify,
+  onSkip,
 }: SelectedUnitPanelProps): ReactElement {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -33,6 +39,11 @@ export function SelectedUnitPanel({
       >
         Next idle unit
       </button>
+      <div className="mt-2 flex gap-1">
+        <button type="button" aria-label="Sentry unit" onClick={onSentry} className="rounded bg-slate-700 px-2 py-1 text-xs hover:bg-slate-600">Sentry</button>
+        <button type="button" aria-label="Fortify unit" onClick={onFortify} className="rounded bg-slate-700 px-2 py-1 text-xs hover:bg-slate-600">Fortify</button>
+        <button type="button" aria-label="Skip unit" onClick={onSkip} className="rounded bg-slate-700 px-2 py-1 text-xs hover:bg-slate-600">Skip</button>
+      </div>
     </section>
   );
 }
