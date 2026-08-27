@@ -27,7 +27,7 @@ function EntityBatch({ bucket, registry }: { readonly bucket: EntityBucket; read
     const target = mesh.current;
     if (!target) return;
     bucket.entities.forEach((entity, index) => {
-      const [q, r] = entity.hexKey.split(",").map(Number);
+      const [q = 0, r = 0] = entity.hexKey.split(",").map(Number);
       marker.position.copy(axialToWorld({ q, r }));
       target.setMatrixAt(index, marker.matrix);
     });
