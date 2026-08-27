@@ -4,6 +4,7 @@ import { refreshUnitMoves, type TurnSystem } from "../systems/refresh-unit-moves
 import { runUpkeep } from "../turn/upkeep.js";
 import { runGrowthProduction } from "../turn/growth-production.js";
 import { runResearch } from "../turn/research.js";
+import { resolveVictory, type VictoryChecker } from "../turn/victory.js";
 
 const TURN_SYSTEMS: TurnSystem[] = [
   (state, playerId) => runUpkeep(state, playerId),
@@ -34,9 +35,10 @@ export function validateEndTurn(
 export function handleEndTurn(
   state: GameState,
   command: Command & { kind: "EndTurn" },
+  checkVictory: VictoryChecker = () => null,
 ): CommandResult {
   if (state.settings.simultaneousTurns) {
-    return handleSimultaneousEndTurn(state, command);
+    return handleSimultaneousEndTurn(state, command, checkVictory);
   }
 
   const currentIndex = state.playerOrder.indexOf(command.playerId);
@@ -66,11 +68,13 @@ export function handleEndTurn(
     systemEvents.push(...result.events);
   }
 
-  const finalState: GameState = { ...systemState, phase: "playing" };
+  const victory = resolveVictory({ ...systemState, phase: "playing" }, checkVictory);
+  const finalState: GameState = victory.state;
 
   const events: GameEvent[] = [
     turnEndedEvent,
     ...systemEvents,
+    ...victory.events,
     { kind: "TurnStarted", turn: nextTurn, activePlayerId: nextActivePlayerId },
   ];
 
@@ -84,6 +88,7 @@ export function handleEndTurn(
 function handleSimultaneousEndTurn(
   state: GameState,
   command: Command & { kind: "EndTurn" },
+  checkVictory: VictoryChecker,
 ): CommandResult {
   const submitted = new Set(state.submittedEndTurnPlayerIds ?? []);
   submitted.add(command.playerId);
@@ -109,12 +114,14 @@ function handleSimultaneousEndTurn(
     systemState = result.state;
     systemEvents.push(...result.events);
   }
+  const victory = resolveVictory({ ...systemState, phase: "playing" }, checkVictory);
   return {
     ok: true,
-    state: { ...systemState, phase: "playing" },
+    state: victory.state,
     events: [
       { kind: "TurnEnded", turn: state.turn, activePlayerId: null },
       ...systemEvents,
+      ...victory.events,
       { kind: "TurnStarted", turn: state.turn + 1, activePlayerId: null },
     ],
   };
