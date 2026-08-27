@@ -34,6 +34,13 @@ export interface MapTypePreset {
    * share tracks the target regardless of seed.
    */
   readonly targetLandFraction: number;
+  /**
+   * Largest water connected-component size, in tiles, that still counts as
+   * a lake rather than ocean (Freeciv's `regenerate_lakes()` tunable). A
+   * component at or above this size stays ocean regardless of whether it
+   * touches a map edge.
+   */
+  readonly maxLakeSize: number;
 }
 
 /** Per-map-type noise presets. */
@@ -47,6 +54,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     targetLandFraction: 0.42,
+    maxLakeSize: 25,
   },
   pangaea: {
     continentFrequency: 1,
@@ -57,6 +65,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     targetLandFraction: 0.55,
+    maxLakeSize: 25,
   },
   archipelago: {
     continentFrequency: 8,
@@ -67,6 +76,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     targetLandFraction: 0.3,
+    maxLakeSize: 25,
   },
   islands: {
     continentFrequency: 16,
@@ -77,6 +87,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     persistence: 0.5,
     lacunarity: 2,
     targetLandFraction: 0.18,
+    maxLakeSize: 20,
   },
 };
 

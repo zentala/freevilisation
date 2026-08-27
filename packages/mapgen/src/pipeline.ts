@@ -7,6 +7,7 @@ import {
 } from "@freevilisation/engine";
 import { generateLandmass } from "./stages/landmass.js";
 import { generateClimate } from "./stages/climate.js";
+import { generateWater } from "./stages/water.js";
 import { generateRivers } from "./stages/rivers.js";
 import { generateFeatures } from "./stages/features.js";
 import { generateResources } from "./stages/resources.js";
@@ -88,7 +89,7 @@ export interface MapGenResult {
  * Generate a complete map from parameters.
  *
  * Synchronous — the Web Worker wrapping is the host's responsibility (E32).
- * Runs landmass, climate, rivers, features, resources and start positions,
+ * Runs landmass, climate, water, rivers, features, resources and start positions,
  * then a validation pass (`generateWithValidation`) that repairs undersized
  * landmasses in place and bounded-rerolls with a forked seed for failures
  * it cannot repair locally (a stranded start, a shape mismatch).
@@ -107,14 +108,14 @@ export function generateMap(
   return generateWithValidation(params, (attemptParams) => runStages(attemptParams, onProgress ?? (() => {})));
 }
 
-/** Runs the landmass -> climate -> rivers -> features -> resources -> start-positions chain once. */
+/** Runs the landmass -> climate -> water -> rivers -> features -> resources -> start-positions chain once. */
 function runStages(params: MapGenParams, progress: (pct: number) => void): MapGenResult {
   const root = createPrng(params.seed);
   const landmassPrng = root.fork("landmass");
 
-  // Six stages share the 0-100 progress range in equal, monotonically
-  // increasing slices: [0,17], [17,33], [33,50], [50,67], [67,83], [83,100].
-  const SLICE_BOUNDARIES = [0, 17, 33, 50, 67, 83, 100] as const;
+  // Seven stages share the 0-100 progress range in equal, monotonically
+  // increasing slices.
+  const SLICE_BOUNDARIES = [0, 14, 29, 43, 57, 71, 86, 100] as const;
   const sliceProgress =
     (stageIdx: number) =>
     (pct: number): void => {
@@ -137,31 +138,38 @@ function runStages(params: MapGenParams, progress: (pct: number) => void): MapGe
   });
   progress(SLICE_BOUNDARIES[2]);
 
-  const riversPrng = root.fork("rivers");
-  const rivers = generateRivers(params, landmass, {
-    prng: riversPrng,
+  const waterPrng = root.fork("water");
+  const water = generateWater(params, landmass, climate, {
+    prng: waterPrng,
     onProgress: sliceProgress(2),
   });
   progress(SLICE_BOUNDARIES[3]);
 
-  const featuresPrng = root.fork("features");
-  const features = generateFeatures(params, climate, {
-    prng: featuresPrng,
+  const riversPrng = root.fork("rivers");
+  const rivers = generateRivers(params, landmass, {
+    prng: riversPrng,
     onProgress: sliceProgress(3),
   });
   progress(SLICE_BOUNDARIES[4]);
 
-  const resourcesPrng = root.fork("resources");
-  const resources = generateResources(params, climate, landmass, {
-    prng: resourcesPrng,
+  const featuresPrng = root.fork("features");
+  const features = generateFeatures(params, climate, {
+    prng: featuresPrng,
     onProgress: sliceProgress(4),
   });
   progress(SLICE_BOUNDARIES[5]);
 
+  const resourcesPrng = root.fork("resources");
+  const resources = generateResources(params, climate, landmass, {
+    prng: resourcesPrng,
+    onProgress: sliceProgress(5),
+  });
+  progress(SLICE_BOUNDARIES[6]);
+
   const startPositionsPrng = root.fork("start-positions");
   const startPositions = generateStartPositions(params, landmass, climate, resources, {
     prng: startPositionsPrng,
-    onProgress: sliceProgress(5),
+    onProgress: sliceProgress(6),
   });
   progress(100);
 
@@ -174,7 +182,7 @@ function runStages(params: MapGenParams, progress: (pct: number) => void): MapGe
     isWraparoundX: wrapContextFor(landmass.width).isWraparoundX,
     elevation: landmass.elevation,
     isLand: landmass.isLand,
-    terrainDefId: climate.terrainDefId,
+    terrainDefId: water.terrainDefId,
     riverEdgeDir0: rivers.riverEdgeDir0,
     riverEdgeDir1: rivers.riverEdgeDir1,
     riverEdgeDir2: rivers.riverEdgeDir2,

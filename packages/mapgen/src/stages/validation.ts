@@ -1,7 +1,8 @@
-import { createPrng, neighbors, type WrapContext } from "@freevilisation/engine";
+import { createPrng, type WrapContext } from "@freevilisation/engine";
 import type { MapGenParams, MapGenResult } from "../pipeline.js";
 import { MAP_TYPE_PRESETS } from "../config.js";
 import { TERRAIN } from "./climate.js";
+import { floodComponents as sharedFloodComponents, type FloodGrid } from "../flood.js";
 
 /**
  * Connected-component tile count below which a landmass is deleted rather
@@ -23,47 +24,6 @@ interface FloodResult {
   readonly componentId: number[];
   /** Tile count per component id, index-aligned with the id. */
   readonly componentSize: number[];
-}
-
-/**
- * Flood-fills `isLand` into connected components using the engine's hex
- * neighbours (wrap-aware, north/south hard edges).
- *
- * Standalone, unexported, and deliberately scoped to this file: E55-W1-T01
- * is expected to land a shared `floodComponents` helper for water-body work,
- * but as of this task E55 has no task files and no such helper exists
- * anywhere in the repo. Delete this in favour of the shared one once E55
- * lands.
- */
-function floodComponents(isLand: readonly boolean[], width: number, height: number, wrap: WrapContext): FloodResult {
-  const total = isLand.length;
-  const componentId = new Array<number>(total).fill(-1);
-  const componentSize: number[] = [];
-
-  for (let start = 0; start < total; start++) {
-    if (!isLand[start] || componentId[start] !== -1) continue;
-    const id = componentSize.length;
-    let size = 0;
-    const stack = [start];
-    componentId[start] = id;
-    while (stack.length > 0) {
-      const cur = stack.pop()!;
-      size++;
-      const r = Math.floor(cur / width);
-      const q = cur % width;
-      for (const n of neighbors({ q, r }, wrap)) {
-        if (n.r < 0 || n.r >= height || n.q < 0 || n.q >= width) continue;
-        const ni = n.r * width + n.q;
-        if (isLand[ni] && componentId[ni] === -1) {
-          componentId[ni] = id;
-          stack.push(ni);
-        }
-      }
-    }
-    componentSize.push(size);
-  }
-
-  return { componentId, componentSize };
 }
 
 export interface ValidationSuccess {
@@ -172,7 +132,9 @@ function checkPangaeaShape(result: MapGenResult, isLand: readonly boolean[], flo
  */
 export function validateMap(result: MapGenResult): ValidationOutcome {
   const wrap: WrapContext = { isWraparoundX: result.isWraparoundX, width: result.width };
-  const flood = floodComponents(result.isLand, result.width, result.height, wrap);
+  const grid: FloodGrid = { width: result.width, height: result.height, wrap };
+  const isLand = result.isLand;
+  const flood = sharedFloodComponents(grid, (idx) => isLand[idx]!);
   const repair = repairTinyIslands(result, flood);
 
   const failure =
