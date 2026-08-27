@@ -1,10 +1,15 @@
 import type { AssetRegistry, PrimitiveShape, PrimitiveSpec } from "@freevilisation/content";
 import { playerColorAccent, resolvePlayerColor } from "../scene/playerColors";
+import type { CityId } from "@freevilisation/engine";
+import { useGameViewStore } from "../scene/gameViewStore";
+import { scaleCitySpec } from "./cityGrowth";
 import * as THREE from "three";
 
 export interface T1CompositorProps {
   readonly registry: AssetRegistry;
   readonly defId: string;
+  readonly cityId?: CityId;
+  readonly population?: number;
   readonly ownerColor?: THREE.ColorRepresentation;
   readonly position?: [number, number, number];
   readonly scale?: number;
@@ -75,16 +80,23 @@ function PrimitiveMesh({ shape, color }: { readonly shape: PrimitiveShape; reado
 export function T1Compositor({
   registry,
   defId,
+  cityId,
+  population,
   ownerColor,
   position = [0, 0, 0],
   scale = 1,
 }: T1CompositorProps) {
-  const spec = resolveT1Spec(registry, defId);
+  const storePopulation = useGameViewStore((view) => cityId ? view.gameState?.entities.cities[cityId]?.population : undefined);
+  const resolvedPopulation = population ?? storePopulation;
+  const baseSpec = resolveT1Spec(registry, defId);
+  const spec = baseSpec && resolvedPopulation !== undefined && categoryOf(defId) === "city"
+    ? scaleCitySpec(baseSpec, resolvedPopulation)
+    : baseSpec;
   const color = resolveT1Color(registry, defId, ownerColor);
   const accent = playerColorAccent({ colorHex: `#${color.getHexString()}` });
   if (!spec) return null;
   return (
-    <group position={position} scale={scale} userData={{ defId, tier: "T1" }}>
+    <group position={position} scale={scale} userData={{ defId, tier: "T1", population: resolvedPopulation }}>
       {spec.shapes.map((shape, index) => (
         <PrimitiveMesh key={`${shape.kind}-${index}`} shape={shape} color={accent} />
       ))}
