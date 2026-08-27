@@ -3,6 +3,7 @@ import { fractalNoise2D } from "../noise.js";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { LandmassResult } from "./landmass.js";
 import { wrapContextFor } from "../config.js";
+import { equatorWeight } from "../latitude.js";
 
 export const TERRAIN = {
   ocean: "terrain_ocean" as TerrainDefId,
@@ -32,12 +33,11 @@ const MOISTURE_LACUNARITY = 2;
  * Compute per-tile temperature from latitude.
  *
  * Row 0 = north pole (coldest, 0), row (h-1)/2 = equator (hottest, 1),
- * row h-1 = south pole (coldest, 0). Linear falloff from equator.
+ * row h-1 = south pole (coldest, 0). Linear falloff from equator — shape
+ * shared with landmass.ts's pole bias via `equatorWeight`.
  */
 function temperatureFromLatitude(r: number, height: number): number {
-  const equator = (height - 1) / 2;
-  const halfHeight = height / 2;
-  return 1 - Math.abs(r - equator) / halfHeight;
+  return equatorWeight(r, height);
 }
 
 /**

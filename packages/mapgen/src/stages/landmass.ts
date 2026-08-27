@@ -1,6 +1,7 @@
 import type { Prng } from "@freevilisation/engine";
 import { fractalNoise2D } from "../noise.js";
 import { MAP_SIZES, MAP_TYPE_PRESETS } from "../config.js";
+import { equatorWeight } from "../latitude.js";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 
 /** Result of the landmass/elevation stage. */
@@ -25,18 +26,6 @@ function drawSeed(prng: Prng): number {
  * `normalize_hmap_poles()`.
  */
 const POLE_BIAS_STRENGTH = 0.6;
-
-/**
- * Latitude weight for the pole bias: 1 at the equator, 0 at either pole.
- * Same falloff shape as `climate.ts`'s `temperatureFromLatitude`, duplicated
- * here (not imported) because this stage runs before climate exists and
- * decides elevation, not terrain.
- */
-function equatorWeight(r: number, height: number): number {
-  const equator = (height - 1) / 2;
-  const halfHeight = height / 2;
-  return 1 - Math.abs(r - equator) / halfHeight;
-}
 
 /**
  * Find the elevation value at or above which exactly `targetLandFraction`
