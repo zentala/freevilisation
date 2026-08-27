@@ -1,7 +1,7 @@
 import { EventBus } from "@freevilisation/engine";
 import type { HexKey, UnitId } from "@freevilisation/engine";
 import { describe, expect, it } from "vitest";
-import { AnimationSystem } from "./AnimationSystem";
+import { AnimationSystem, DEFAULT_MOVE_DURATION_MS } from "./AnimationSystem";
 
 const UNIT = "ent_unit" as UnitId;
 
@@ -34,6 +34,17 @@ describe("AnimationSystem", () => {
   it("returns undefined for entities without an animation", () => {
     const animations = new AnimationSystem(new EventBus(), { now: () => 0 });
     expect(animations.getCurrentTransform(UNIT)).toBeUndefined();
+    animations.dispose();
+  });
+
+  it("uses the fixed default movement duration", () => {
+    let now = 0;
+    const animations = new AnimationSystem(new EventBus(), { now: () => now });
+    animations.queueMove(UNIT, "0,0", "1,0");
+    now = DEFAULT_MOVE_DURATION_MS / 2;
+    expect(animations.getCurrentTransform(UNIT)?.x).toBeCloseTo(Math.sqrt(3) / 2);
+    now = DEFAULT_MOVE_DURATION_MS;
+    expect(animations.getCurrentTransform(UNIT)?.x).toBeCloseTo(Math.sqrt(3));
     animations.dispose();
   });
 });

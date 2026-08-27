@@ -14,6 +14,8 @@ export interface AnimationSystemOptions {
   readonly now?: () => number;
 }
 
+export const DEFAULT_MOVE_DURATION_MS = 300;
+
 /** Event-driven transform tween queue consumed by entity renderers. */
 export class AnimationSystem {
   readonly #tweens = new Map<EntityId, Tween[]>();
@@ -24,7 +26,7 @@ export class AnimationSystem {
 
   constructor(eventBus: EventBus, options: AnimationSystemOptions = {}) {
     this.#now = options.now ?? (() => performance.now());
-    this.#durationMs = options.durationMs ?? 300;
+    this.#durationMs = options.durationMs ?? DEFAULT_MOVE_DURATION_MS;
     this.#time = this.#now();
     this.#unsubscribe = eventBus.on((event) => this.#handleEvent(event));
   }
@@ -47,15 +49,20 @@ export class AnimationSystem {
     this.#tweens.clear();
   }
 
-  #handleEvent(event: GameEvent): void {
-    if (event.kind !== "UnitMoved") return;
-    const queue = this.#tweens.get(event.unitId) ?? [];
-    const from = queue.at(-1)?.to ?? axialToWorld(parseCoord(event.from));
-    const to = axialToWorld(parseCoord(event.to));
+  /** Queues a fixed-duration slide between two axial tile centres. */
+  queueMove(id: EntityId, fromKey: string, toKey: string): void {
+    const queue = this.#tweens.get(id) ?? [];
+    const from = queue.at(-1)?.to ?? axialToWorld(parseCoord(fromKey));
+    const to = axialToWorld(parseCoord(toKey));
     const last = queue.at(-1);
     const startedAt = last === undefined ? this.#time : tweenEnd(last);
     queue.push({ from, to, startedAt, durationMs: this.#durationMs });
-    this.#tweens.set(event.unitId, queue);
+    this.#tweens.set(id, queue);
+  }
+
+  #handleEvent(event: GameEvent): void {
+    if (event.kind !== "UnitMoved") return;
+    this.queueMove(event.unitId, event.from, event.to);
   }
 
   #transformAt(id: EntityId, now: number): Vector3 | undefined {
