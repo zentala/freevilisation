@@ -32,7 +32,8 @@ export type GameEvent =
       cityId: CityId;
       item: "unit" | "building" | "wonder";
       defId: DefId;
-    };
+    }
+  | { kind: "TechResearched"; playerId: PlayerId; techDefId: DefId<"tech"> };
 
 export interface CommandRejection {
   readonly code: "malformed" | "not_your_turn" | "unknown_entity" | "not_owner" | "illegal";

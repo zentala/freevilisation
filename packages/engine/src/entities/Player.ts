@@ -1,6 +1,11 @@
 import type { EntityId, PlayerId, CivDefId, CityId, TechDefId, PolicyDefId } from "../ids.js";
 import { Entity } from "./Entity.js";
 
+export interface CurrentResearch {
+  readonly techDefId: TechDefId;
+  readonly scienceInvested: number;
+}
+
 export class Player extends Entity {
   readonly civDefId: CivDefId;
   readonly isAI: boolean;
@@ -14,6 +19,8 @@ export class Player extends Entity {
   capitalCityId: CityId | null;
   isAlive: boolean;
   eliminatedTurn: number | null;
+  currentResearch: CurrentResearch | null;
+  needsNextTech: boolean;
 
   constructor(
     id: EntityId,
@@ -30,6 +37,8 @@ export class Player extends Entity {
     capitalCityId: CityId | null,
     isAlive: boolean,
     eliminatedTurn: number | null,
+    currentResearch: CurrentResearch | null = null,
+    needsNextTech = false,
   ) {
     const playerId = id as unknown as PlayerId;
     super(id, "player", playerId, createdTurn);
@@ -45,5 +54,7 @@ export class Player extends Entity {
     this.capitalCityId = capitalCityId;
     this.isAlive = isAlive;
     this.eliminatedTurn = eliminatedTurn;
+    this.currentResearch = currentResearch;
+    this.needsNextTech = needsNextTech;
   }
 }

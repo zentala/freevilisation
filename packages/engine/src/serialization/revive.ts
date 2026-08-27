@@ -54,7 +54,7 @@ export function revivePlayer(p: PlainEntity, registry: Registry): Player {
   for (const techId of (p.researchedTechs as DefId[] | undefined) ?? []) {
     assertKnownDefId(techId, registry.techs, "player.researchedTechs");
   }
-  return new Player(
+  const player = new Player(
     p.id as EntityId,
     asNum(p.createdTurn, "player.createdTurn"),
     p.civDefId as never,
@@ -70,6 +70,9 @@ export function revivePlayer(p: PlainEntity, registry: Registry): Player {
     asBool(p.isAlive, "player.isAlive"),
     p.eliminatedTurn as number | null,
   );
+  player.currentResearch = (p.currentResearch as Player["currentResearch"] | undefined) ?? null;
+  player.needsNextTech = (p.needsNextTech as boolean | undefined) ?? false;
+  return player;
 }
 
 export function reviveTile(p: PlainEntity, registry: Registry): Tile {
