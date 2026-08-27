@@ -122,3 +122,54 @@ describe("EndTurn — turn boundary", () => {
     expect(result.state.phase).toBe("playing");
   });
 });
+
+describe("EndTurn — simultaneous turns", () => {
+  it("waits for every player before resolving a turn", () => {
+    const state = makeBaseState();
+    state.settings.simultaneousTurns = true;
+
+    const first = applyCommand(state, { kind: "EndTurn", playerId: P1 });
+    expect(first.ok).toBe(true);
+    if (!first.ok) throw new Error("expected ok");
+    expect(first.state.turn).toBe(state.turn);
+    expect(first.state.phase).toBe("playing");
+    expect(first.state.activePlayerId).toBeNull();
+    expect(first.state.submittedEndTurnPlayerIds).toEqual([P1]);
+    expect(first.events).toEqual([]);
+  });
+
+  it("resolves once all players submit and resets the submission set", () => {
+    const state = makeBaseState();
+    state.settings.simultaneousTurns = true;
+
+    const first = applyCommand(state, { kind: "EndTurn", playerId: P1 });
+    expect(first.ok).toBe(true);
+    if (!first.ok) throw new Error("expected ok");
+    const second = applyCommand(first.state, { kind: "EndTurn", playerId: P2 });
+    expect(second.ok).toBe(true);
+    if (!second.ok) throw new Error("expected ok");
+
+    expect(second.state.turn).toBe(state.turn + 1);
+    expect(second.state.activePlayerId).toBeNull();
+    expect(second.state.submittedEndTurnPlayerIds).toEqual([]);
+    expect(second.events[0]).toEqual({ kind: "TurnEnded", turn: state.turn, activePlayerId: null });
+    expect(second.events.at(-1)).toEqual({
+      kind: "TurnStarted",
+      turn: state.turn + 1,
+      activePlayerId: null,
+    });
+  });
+
+  it("keeps simultaneous submissions deterministic regardless of arrival order", () => {
+    const state = makeBaseState();
+    state.settings.simultaneousTurns = true;
+    const first = applyCommand(state, { kind: "EndTurn", playerId: P2 });
+    expect(first.ok).toBe(true);
+    if (!first.ok) throw new Error("expected ok");
+    const second = applyCommand(first.state, { kind: "EndTurn", playerId: P1 });
+    expect(second.ok).toBe(true);
+    if (!second.ok) throw new Error("expected ok");
+    expect(second.state.turn).toBe(state.turn + 1);
+    expect(second.state.submittedEndTurnPlayerIds).toEqual([]);
+  });
+});

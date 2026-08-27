@@ -28,11 +28,15 @@ export function validate(state: GameState, command: Command): CommandRejection |
     return { code: "not_your_turn", message: "Game is not in playing phase" };
   }
 
-  if (command.playerId !== state.activePlayerId) {
+  const simultaneous = state.settings.simultaneousTurns;
+  if (!simultaneous && command.playerId !== state.activePlayerId) {
     return { code: "not_your_turn", message: "It is not your turn" };
   }
 
   if (command.kind === "EndTurn") {
+    if (simultaneous && (state.submittedEndTurnPlayerIds ?? []).includes(command.playerId)) {
+      return { code: "illegal", message: "Player already submitted EndTurn" };
+    }
     return validateEndTurn(state, command);
   }
 

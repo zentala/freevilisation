@@ -5,6 +5,7 @@ import type { Player } from "./entities/Player.js";
 import type { Tile } from "./entities/Tile.js";
 import type { Registry } from "./registry.js";
 import { createPrng, type RngState } from "./prng.js";
+import type { VisibilityGrid } from "./visibility.js";
 
 export interface GameMap {
   readonly width: number;
@@ -42,6 +43,8 @@ export interface GameState {
   phase: GamePhase;
   era?: Era;
   activePlayerId: PlayerId | null;
+  /** Players that submitted EndTurn in the current simultaneous turn. */
+  submittedEndTurnPlayerIds?: PlayerId[];
   players: Record<PlayerId, Player>;
   playerOrder: PlayerId[];
   map: GameMap;
@@ -52,6 +55,7 @@ export interface GameState {
   nextEntitySeq: number;
   winnerPlayerId: PlayerId | null;
   victoryType: DefId<"victory"> | null;
+  visibility?: Record<PlayerId, VisibilityGrid>;
 }
 
 const MAP_SIZES: Record<GameSettings["mapSize"], { w: number; h: number }> = {

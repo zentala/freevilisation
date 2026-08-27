@@ -35,6 +35,10 @@ export function handleEndTurn(
   state: GameState,
   command: Command & { kind: "EndTurn" },
 ): CommandResult {
+  if (state.settings.simultaneousTurns) {
+    return handleSimultaneousEndTurn(state, command);
+  }
+
   const currentIndex = state.playerOrder.indexOf(command.playerId);
   const nextIndex = (currentIndex + 1) % state.playerOrder.length;
   const wrap = nextIndex === 0;
@@ -74,5 +78,44 @@ export function handleEndTurn(
     ok: true,
     state: finalState,
     events,
+  };
+}
+
+function handleSimultaneousEndTurn(
+  state: GameState,
+  command: Command & { kind: "EndTurn" },
+): CommandResult {
+  const submitted = new Set(state.submittedEndTurnPlayerIds ?? []);
+  submitted.add(command.playerId);
+  if (submitted.size < state.playerOrder.length) {
+    return {
+      ok: true,
+      state: { ...state, activePlayerId: null, submittedEndTurnPlayerIds: [...submitted].sort() },
+      events: [],
+    };
+  }
+
+  const resolutionState: GameState = {
+    ...state,
+    turn: state.turn + 1,
+    activePlayerId: null,
+    phase: "turn_resolution",
+    submittedEndTurnPlayerIds: [],
+  };
+  let systemState = resolutionState;
+  const systemEvents: GameEvent[] = [];
+  for (const system of TURN_SYSTEMS) {
+    const result = system(systemState, command.playerId);
+    systemState = result.state;
+    systemEvents.push(...result.events);
+  }
+  return {
+    ok: true,
+    state: { ...systemState, phase: "playing" },
+    events: [
+      { kind: "TurnEnded", turn: state.turn, activePlayerId: null },
+      ...systemEvents,
+      { kind: "TurnStarted", turn: state.turn + 1, activePlayerId: null },
+    ],
   };
 }
