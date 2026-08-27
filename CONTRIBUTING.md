@@ -18,10 +18,10 @@ block a merge if any of them is red or skipped:
 - `size-limit` — the `apps/client` production bundle budget
 - `preview-deploy` — a build-and-deploy smoke check for `apps/client`
 
-E34 owns a second, more expensive suite — long-game determinism replays,
-fuzz tests, balance simulation, and performance probes. Those run on a
-nightly schedule, not on pull requests, because they are too slow to gate
-every PR.
+E34 extends this pipeline: long-game and cross-browser determinism replays
+and a performance-regression probe join the PR-blocking checks above. Only
+the balance-simulation harness and the command-validation fuzz suite move
+to a nightly schedule instead, because they are too slow to gate every PR.
 
 See [`docs/BRANCH_PROTECTION.md`](docs/BRANCH_PROTECTION.md) for the exact
 GitHub branch-protection settings that enforce this rule once enabled, and
