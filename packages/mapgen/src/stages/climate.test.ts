@@ -3,6 +3,7 @@ import { createPrng, neighbors } from "@freevilisation/engine";
 import { generateClimate, TERRAIN } from "./climate.js";
 import { generateLandmass } from "./landmass.js";
 import { wrapContextFor } from "../config.js";
+import { percentileThreshold } from "../noise.js";
 import type { MapGenParams } from "../pipeline.js";
 
 const TERRAIN_IDS = Object.values(TERRAIN);
@@ -109,5 +110,35 @@ describe("generateClimate", () => {
       }
     }
     expect(checked).toBeGreaterThan(0);
+  });
+
+  it("snow-band share of land tiles stays close to its target quantile across different noise-octave presets", () => {
+    // continents (octaves 4) and islands (octaves 3) have different noise
+    // octave counts and drive a differently-shaped landmass, but the
+    // percentile cut should still put ~15% of land tiles below the snow
+    // cutoff either way — the point of cutting on the observed
+    // distribution instead of a fixed raw-noise threshold.
+    const TARGET_SNOW_FRACTION = 0.15;
+    const TOLERANCE = 0.05;
+    for (const mapType of ["continents", "islands"] as const) {
+      const params = makeParams({ mapType, mapSize: "standard" });
+      const { landmass, climate } = runClimate(params);
+      let landCount = 0;
+      let snowCount = 0;
+      for (let i = 0; i < landmass.isLand.length; i++) {
+        if (!landmass.isLand[i]) continue;
+        landCount++;
+        if (climate.terrainDefId[i] === TERRAIN.snow) snowCount++;
+      }
+      expect(landCount).toBeGreaterThan(0);
+      const snowShare = snowCount / landCount;
+      expect(snowShare).toBeGreaterThan(TARGET_SNOW_FRACTION - TOLERANCE);
+      expect(snowShare).toBeLessThan(TARGET_SNOW_FRACTION + TOLERANCE);
+    }
+  });
+
+  it("uses the same shared percentileThreshold helper as landmass.ts, not a duplicated sort-and-cut", () => {
+    const sample = [0.1, 0.9, 0.3, 0.7, 0.5];
+    expect(percentileThreshold(sample, 0.4)).toBe(0.5);
   });
 });

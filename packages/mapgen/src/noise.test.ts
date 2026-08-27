@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hashLattice, valueNoise2D, fractalNoise2D } from "./noise.js";
+import { hashLattice, valueNoise2D, fractalNoise2D, percentileThreshold } from "./noise.js";
 
 describe("hashLattice", () => {
   it("returns a value in [0, 1) for a spread of inputs including negatives and zero", () => {
@@ -84,5 +84,36 @@ describe("fractalNoise2D", () => {
   it("throws when octaves <= 0", () => {
     expect(() => fractalNoise2D(0, 0, 0, 0, 0.5, 2)).toThrow("octaves");
     expect(() => fractalNoise2D(0, 0, 0, -1, 0.5, 2)).toThrow("octaves");
+  });
+});
+
+describe("percentileThreshold", () => {
+  function sampleGrid(octaves: number, persistence: number, lacunarity: number): number[] {
+    const values: number[] = [];
+    for (let x = 0; x < 40; x++) {
+      for (let y = 0; y < 40; y++) {
+        values.push(fractalNoise2D(x * 0.3, y * 0.3, 7, octaves, persistence, lacunarity));
+      }
+    }
+    return values;
+  }
+
+  it("keeps the resulting band share close to the target quantile across different octave configs", () => {
+    const quantile = 0.35;
+    const configs: Array<[number, number, number]> = [
+      [2, 0.5, 2],
+      [8, 0.6, 2.5],
+    ];
+    for (const [octaves, persistence, lacunarity] of configs) {
+      const values = sampleGrid(octaves, persistence, lacunarity);
+      const cutoff = percentileThreshold(values, quantile);
+      const belowShare = values.filter((v) => v <= cutoff).length / values.length;
+      expect(belowShare).toBeGreaterThan(quantile - 0.03);
+      expect(belowShare).toBeLessThan(quantile + 0.03);
+    }
+  });
+
+  it("returns 0 for an empty sample instead of throwing", () => {
+    expect(percentileThreshold([], 0.5)).toBe(0);
   });
 });

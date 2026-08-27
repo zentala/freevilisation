@@ -1,5 +1,5 @@
 import type { Prng } from "@freevilisation/engine";
-import { fractalNoise2D } from "../noise.js";
+import { fractalNoise2D, percentileThreshold } from "../noise.js";
 import { MAP_SIZES, MAP_TYPE_PRESETS } from "../config.js";
 import { equatorWeight } from "../latitude.js";
 import type { MapGenParams, StageContext } from "../pipeline.js";
@@ -26,21 +26,6 @@ function drawSeed(prng: Prng): number {
  * `normalize_hmap_poles()`.
  */
 const POLE_BIAS_STRENGTH = 0.6;
-
-/**
- * Find the elevation value at or above which exactly `targetLandFraction`
- * of tiles fall — a percentile cut over a sorted copy of the elevation
- * array, not a fixed threshold, so the resulting land share tracks the
- * target regardless of seed (Unciv/Freeciv approach).
- */
-function landCutoff(elevation: readonly number[], targetLandFraction: number): number {
-  const sorted = [...elevation].sort((a, b) => a - b);
-  const cutIndex = Math.min(
-    Math.max(Math.floor((1 - targetLandFraction) * sorted.length), 0),
-    sorted.length - 1,
-  );
-  return sorted[cutIndex]!;
-}
 
 /**
  * Generate landmass elevation and land/water classification for a map.
@@ -87,7 +72,7 @@ export function generateLandmass(params: MapGenParams, ctx: StageContext): Landm
     }
   }
 
-  const cutoff = landCutoff(elevation, preset.targetLandFraction);
+  const cutoff = percentileThreshold(elevation, 1 - preset.targetLandFraction);
   for (let i = 0; i < elevation.length; i++) {
     isLand[i] = elevation[i]! >= cutoff;
   }

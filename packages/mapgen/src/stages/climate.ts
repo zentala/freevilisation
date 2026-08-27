@@ -1,5 +1,5 @@
 import { neighbors, type Prng, type TerrainDefId, type WrapContext } from "@freevilisation/engine";
-import { fractalNoise2D } from "../noise.js";
+import { fractalNoise2D, percentileThreshold } from "../noise.js";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { LandmassResult } from "./landmass.js";
 import { wrapContextFor } from "../config.js";
@@ -30,6 +30,28 @@ const MOISTURE_PERSISTENCE = 0.5;
 const MOISTURE_LACUNARITY = 2;
 
 /**
+ * Target band fractions, expressed as quantiles over the *observed*
+ * land-tile temperature/moisture distribution rather than fixed values on
+ * the raw latitude/noise domain (see `percentileThreshold` in noise.ts for
+ * why: pole bias and continent shape already skew that domain per map
+ * type and seed, so a fixed value does not hold a stable tile share).
+ *
+ * Temperature quantiles are cumulative bottom-up boundaries: coldest
+ * `TEMP_SNOW_QUANTILE` fraction of land tiles → snow, next
+ * `TEMP_COLD_QUANTILE` → cold band, next `TEMP_TEMPERATE_QUANTILE` →
+ * temperate band, remainder → hot band. Moisture quantiles are the same
+ * shape, computed separately within each temperature band's own tiles.
+ */
+const TEMP_SNOW_QUANTILE = 0.15;
+const TEMP_COLD_QUANTILE = 0.35;
+const TEMP_TEMPERATE_QUANTILE = 0.65;
+const COLD_MOISTURE_QUANTILE = 0.45;
+const TEMPERATE_DESERT_QUANTILE = 0.3;
+const TEMPERATE_GRASSLAND_QUANTILE = 0.6;
+const HOT_DESERT_QUANTILE = 0.25;
+const HOT_GRASSLAND_QUANTILE = 0.55;
+
+/**
  * Compute per-tile temperature from latitude.
  *
  * Row 0 = north pole (coldest, 0), row (h-1)/2 = equator (hottest, 1),
@@ -40,25 +62,64 @@ function temperatureFromLatitude(r: number, height: number): number {
   return equatorWeight(r, height);
 }
 
+/** Percentile cutoffs a map's land tiles are classified against — see the quantile constants above. */
+interface ClimateCutoffs {
+  readonly snowCutoff: number;
+  readonly coldCutoff: number;
+  readonly temperateCutoff: number;
+  readonly coldMoistureCutoff: number;
+  readonly temperateDesertCutoff: number;
+  readonly temperateGrasslandCutoff: number;
+  readonly hotDesertCutoff: number;
+  readonly hotGrasslandCutoff: number;
+}
+
 /**
- * Assign land terrain from temperature and moisture.
- *
- * Thresholds:
- *   temperature < 0.15 → snow (regardless of moisture)
- *   temperature < 0.35 → tundra if moisture < 0.45, plains otherwise
- *   temperature < 0.65 → desert if moisture < 0.3, grassland if < 0.6, plains otherwise
- *   temperature >= 0.65 → desert if moisture < 0.25, grassland if < 0.55, plains otherwise
+ * Derive `ClimateCutoffs` from a map's land-tile temperature and moisture
+ * samples, so band boundaries track the observed distribution instead of
+ * a fixed value on the raw domain.
  */
-function landTerrain(temp: number, moisture: number): TerrainDefId {
-  if (temp < 0.15) return TERRAIN.snow;
-  if (temp < 0.35) return moisture < 0.45 ? TERRAIN.tundra : TERRAIN.plains;
-  if (temp < 0.65) {
-    if (moisture < 0.3) return TERRAIN.desert;
-    if (moisture < 0.6) return TERRAIN.grassland;
+function climateCutoffsFor(landTemps: readonly number[], landMoistures: readonly number[]): ClimateCutoffs {
+  const snowCutoff = percentileThreshold(landTemps, TEMP_SNOW_QUANTILE);
+  const coldCutoff = percentileThreshold(landTemps, TEMP_COLD_QUANTILE);
+  const temperateCutoff = percentileThreshold(landTemps, TEMP_TEMPERATE_QUANTILE);
+
+  const coldMoistures: number[] = [];
+  const temperateMoistures: number[] = [];
+  const hotMoistures: number[] = [];
+  for (let i = 0; i < landTemps.length; i++) {
+    const t = landTemps[i]!;
+    if (t <= snowCutoff) continue;
+    if (t <= coldCutoff) coldMoistures.push(landMoistures[i]!);
+    else if (t <= temperateCutoff) temperateMoistures.push(landMoistures[i]!);
+    else hotMoistures.push(landMoistures[i]!);
+  }
+
+  return {
+    snowCutoff,
+    coldCutoff,
+    temperateCutoff,
+    coldMoistureCutoff: percentileThreshold(coldMoistures, COLD_MOISTURE_QUANTILE),
+    temperateDesertCutoff: percentileThreshold(temperateMoistures, TEMPERATE_DESERT_QUANTILE),
+    temperateGrasslandCutoff: percentileThreshold(temperateMoistures, TEMPERATE_GRASSLAND_QUANTILE),
+    hotDesertCutoff: percentileThreshold(hotMoistures, HOT_DESERT_QUANTILE),
+    hotGrasslandCutoff: percentileThreshold(hotMoistures, HOT_GRASSLAND_QUANTILE),
+  };
+}
+
+/** Assign land terrain from temperature and moisture, against per-map percentile cutoffs. */
+function landTerrain(temp: number, moisture: number, cutoffs: ClimateCutoffs): TerrainDefId {
+  if (temp <= cutoffs.snowCutoff) return TERRAIN.snow;
+  if (temp <= cutoffs.coldCutoff) {
+    return moisture <= cutoffs.coldMoistureCutoff ? TERRAIN.tundra : TERRAIN.plains;
+  }
+  if (temp <= cutoffs.temperateCutoff) {
+    if (moisture <= cutoffs.temperateDesertCutoff) return TERRAIN.desert;
+    if (moisture <= cutoffs.temperateGrasslandCutoff) return TERRAIN.grassland;
     return TERRAIN.plains;
   }
-  if (moisture < 0.25) return TERRAIN.desert;
-  if (moisture < 0.55) return TERRAIN.grassland;
+  if (moisture <= cutoffs.hotDesertCutoff) return TERRAIN.desert;
+  if (moisture <= cutoffs.hotGrasslandCutoff) return TERRAIN.grassland;
   return TERRAIN.plains;
 }
 
@@ -93,21 +154,18 @@ export function generateClimate(
 
   ctx.onProgress(0);
 
-  const terrainDefId = new Array<TerrainDefId>(width * height);
+  const temp = new Array<number>(width * height);
+  const moisture = new Array<number>(width * height);
+  const landTemps: number[] = [];
+  const landMoistures: number[] = [];
 
   for (let r = 0; r < height; r++) {
     for (let q = 0; q < width; q++) {
       const idx = r * width + q;
+      if (!isLand[idx]!) continue;
 
-      if (!isLand[idx]!) {
-        terrainDefId[idx] = isCoast(q, r, width, height, isLand, wrap)
-          ? TERRAIN.coast
-          : TERRAIN.ocean;
-        continue;
-      }
-
-      const temp = temperatureFromLatitude(r, height);
-      const moisture = fractalNoise2D(
+      const t = temperatureFromLatitude(r, height);
+      const m = fractalNoise2D(
         (q * MOISTURE_FREQUENCY) / width,
         (r * MOISTURE_FREQUENCY) / width,
         moistureSeed,
@@ -115,8 +173,24 @@ export function generateClimate(
         MOISTURE_PERSISTENCE,
         MOISTURE_LACUNARITY,
       );
+      temp[idx] = t;
+      moisture[idx] = m;
+      landTemps.push(t);
+      landMoistures.push(m);
+    }
+  }
 
-      terrainDefId[idx] = landTerrain(temp, moisture);
+  const cutoffs = climateCutoffsFor(landTemps, landMoistures);
+
+  const terrainDefId = new Array<TerrainDefId>(width * height);
+  for (let r = 0; r < height; r++) {
+    for (let q = 0; q < width; q++) {
+      const idx = r * width + q;
+      terrainDefId[idx] = isLand[idx]!
+        ? landTerrain(temp[idx]!, moisture[idx]!, cutoffs)
+        : isCoast(q, r, width, height, isLand, wrap)
+          ? TERRAIN.coast
+          : TERRAIN.ocean;
     }
   }
 

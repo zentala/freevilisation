@@ -35,6 +35,27 @@ export function valueNoise2D(x: number, y: number, seed: number): number {
 }
 
 /**
+ * Value at the given quantile of a sample, computed over a sorted copy.
+ *
+ * `quantile` is a fraction in [0, 1]: the returned value is the one below
+ * or at which approximately that fraction of `values` falls. Used to turn
+ * a fixed threshold on raw noise output (whose distribution nobody
+ * verified) into a threshold on the actual observed distribution, so a
+ * band's tile share tracks its target fraction regardless of seed, noise
+ * octave count or upstream skew (Unciv/Freeciv/WorldEngine approach;
+ * `find_threshold_f()` in WorldEngine).
+ *
+ * Returns 0 for an empty sample — callers only ever consult that result
+ * when the band it belongs to is itself empty.
+ */
+export function percentileThreshold(values: readonly number[], quantile: number): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = Math.min(Math.max(Math.floor(quantile * sorted.length), 0), sorted.length - 1);
+  return sorted[index]!;
+}
+
+/**
  * Fractal (fBm) value noise — layered `valueNoise2D` with configurable
  * octaves, persistence and lacunarity.
  *
