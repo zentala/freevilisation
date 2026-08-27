@@ -65,3 +65,5 @@ are in [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 AGPL-3.0. See [LICENSE](LICENSE).
+
+test line for commitlint verification
