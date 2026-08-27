@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { axialToWorld } from "../hexMath";
 import { ChunkRegistry } from "./ChunkRegistry";
+import { chunkBoundsBox } from "./chunkFrustum";
 
 export interface TerrainChunksProps {
   readonly coordinates?: readonly AxialCoord[];
@@ -79,7 +80,7 @@ export function buildTerrainBatches(tiles: readonly TerrainTile[]): readonly Ter
   }));
 }
 
-function createMesh(tiles: readonly TerrainTile[]): THREE.InstancedMesh {
+function createMesh(tiles: readonly TerrainTile[], bounds: ReturnType<ChunkRegistry["ensure"]>["bounds"]): THREE.InstancedMesh {
   const geometry = new THREE.CylinderGeometry(HEX_RADIUS, HEX_RADIUS, 0.2, 6);
   const terrain = tiles[0]?.terrainDefId as string;
   const material = new THREE.MeshStandardMaterial({
@@ -96,6 +97,9 @@ function createMesh(tiles: readonly TerrainTile[]): THREE.InstancedMesh {
   }
   mesh.instanceMatrix.needsUpdate = true;
   if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  const chunkBox = chunkBoundsBox(bounds);
+  mesh.geometry.boundingBox = chunkBox;
+  mesh.geometry.boundingSphere = chunkBox.getBoundingSphere(new THREE.Sphere());
   mesh.userData.terrainDefId = terrain;
   return mesh;
 }
@@ -150,9 +154,10 @@ export interface TerrainBatchTarget {
 export function TerrainChunks({ coordinates = [], tiles }: TerrainChunksProps) {
   const meshes = useMemo(() => {
     const source = tiles ?? defaultTiles(coordinates);
+    const registry = new ChunkRegistry();
     return buildTerrainBatches(source).map(({ key, tiles: batchTiles }) => ({
       key,
-      mesh: createMesh(batchTiles),
+      mesh: createMesh(batchTiles, registry.ensure(batchTiles[0]!.coord).bounds),
     }));
   }, [coordinates, tiles]);
 
