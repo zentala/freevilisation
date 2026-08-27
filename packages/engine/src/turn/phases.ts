@@ -1,3 +1,6 @@
+import type { TechDefId } from "../ids.js";
+import type { Era } from "../game-state.js";
+
 /** Ordered phases that make up one gameplay turn. */
 export type TurnPhase = "upkeep" | "commands" | "combat" | "growth" | "research" | "end";
 
@@ -18,4 +21,19 @@ export const TURN_PHASES = [
 export function advancePhase(phase: TurnPhase): TurnPhase {
   const index = TURN_PHASES.indexOf(phase);
   return TURN_PHASES[(index + 1) % TURN_PHASES.length]!;
+}
+
+const ERA_ORDER: readonly Era[] = ["Ancient", "Classical", "Medieval"];
+
+/** Derives the highest era reached by a player's researched technologies. */
+export function deriveEra(
+  researchedTechs: readonly TechDefId[],
+  techEra: (techDefId: TechDefId) => Era,
+): Era {
+  let highest = 0;
+  for (const techDefId of researchedTechs) {
+    const index = ERA_ORDER.indexOf(techEra(techDefId));
+    if (index > highest) highest = index;
+  }
+  return ERA_ORDER[highest]!;
 }

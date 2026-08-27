@@ -28,6 +28,7 @@ export interface GameSettings {
 }
 
 export type GamePhase = "setup" | "playing" | "turn_resolution" | "game_over";
+export type Era = "Ancient" | "Classical" | "Medieval";
 
 export interface RulesetRef {
   readonly id: string;
@@ -39,6 +40,7 @@ export interface GameState {
   readonly gameId: EntityId;
   turn: number;
   phase: GamePhase;
+  era?: Era;
   activePlayerId: PlayerId | null;
   players: Record<PlayerId, Player>;
   playerOrder: PlayerId[];
@@ -78,6 +80,7 @@ export function createInitialGameState(
     gameId: `ent_000000` as EntityId,
     turn: 0,
     phase: "setup",
+    era: "Ancient",
     activePlayerId: null,
     players: {},
     playerOrder: [],

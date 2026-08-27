@@ -43,6 +43,7 @@ export type {
   GamePhase,
   GameState,
   RulesetRef,
+  Era,
 } from "./game-state.js";
 
 export { serialize, deserialize, stateHash } from "./serialization/index.js";
@@ -63,7 +64,7 @@ export type { DeterminismRun } from "./testing/determinism-harness.js";
 
 export { assertInvariants } from "./invariants.js";
 
-export { advancePhase, TURN_PHASES } from "./turn/phases.js";
+export { advancePhase, deriveEra, TURN_PHASES } from "./turn/phases.js";
 export type { TurnPhase } from "./turn/phases.js";
 export { runUpkeep } from "./turn/upkeep.js";
 export type { UpkeepRules, UpkeepResult } from "./turn/upkeep.js";
