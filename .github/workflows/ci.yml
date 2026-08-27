@@ -136,6 +136,12 @@ jobs:
   # build-breaks-visibly check, superseded by E35's full deploy pipeline.
   preview-deploy:
     runs-on: ubuntu-latest
+    env:
+      # Secrets cannot be referenced directly in a step's `if:` — GitHub's
+      # own security guide requires going through env instead. Without this,
+      # GitHub refuses the whole workflow file (every job shows 0 jobs run,
+      # "failed because of a workflow file issue").
+      HAS_CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -149,7 +155,7 @@ jobs:
       # are added as repo secrets — the build step above is still the
       # build-breaks-visibly check even before deploy credentials exist.
       - name: Deploy apps/client preview to Cloudflare Pages
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+        if: ${{ env.HAS_CLOUDFLARE_TOKEN == 'true' }}
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
