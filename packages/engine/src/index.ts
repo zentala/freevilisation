@@ -79,9 +79,17 @@ export type {
 export { runResearch } from "./turn/research.js";
 export type { ResearchResult, ResearchRules } from "./turn/research.js";
 export type { CurrentResearch } from "./entities/Player.js";
+export { resolveVictory } from "./turn/victory.js";
+export type { VictoryChecker, VictoryResolution, VictoryResult } from "./turn/victory.js";
 
 export type { AxialCoord } from "./hex/coords.js";
-export { createVisibilityGrid, updateVisibility, updatePlayerVisibility } from "./visibility.js";
+export {
+  createVisibilityGrid,
+  updateVisibility,
+  updateVisibilityWithEvents,
+  updatePlayerVisibility,
+  updatePlayerVisibilityWithEvents,
+} from "./visibility.js";
 export type { VisibilityGrid } from "./visibility.js";
 export { VisibilityState } from "./visibility.js";
 export { cubeS, toHexKey, fromHexKey, coordsEqual } from "./hex/coords.js";

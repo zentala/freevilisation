@@ -8,7 +8,7 @@ import { neighbors, type WrapContext } from "../hex/hex-math.js";
 import { toWrapContext } from "../hex/game-map.js";
 import { stepCost } from "../movement/step.js";
 import { Tile } from "../entities/Tile.js";
-import { updatePlayerVisibility } from "../visibility.js";
+import { updatePlayerVisibilityWithEvents } from "../visibility.js";
 
 function withOccupants(tile: Tile, occupantUnitIds: UnitId[]): Tile {
   return new Tile(
@@ -139,9 +139,10 @@ export function handleMoveUnit(
     map: { ...state.map, tiles: nextTiles },
     entities: { ...state.entities, units: nextUnits },
   };
+  const visibility = updatePlayerVisibilityWithEvents(nextState, command.playerId, to, 2);
   return {
     ok: true,
-    state: updatePlayerVisibility(nextState, command.playerId, to, 2),
-    events,
+    state: visibility.state,
+    events: [...events, ...visibility.events],
   };
 }

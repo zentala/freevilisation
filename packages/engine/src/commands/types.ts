@@ -33,7 +33,11 @@ export type GameEvent =
       item: "unit" | "building" | "wonder";
       defId: DefId;
     }
-  | { kind: "TechResearched"; playerId: PlayerId; techDefId: DefId<"tech"> };
+  | { kind: "TechResearched"; playerId: PlayerId; techDefId: DefId<"tech"> }
+  | { kind: "TileExplored"; playerId: PlayerId; hexKey: HexKey }
+  | { kind: "ResourceDiscovered"; playerId: PlayerId; hexKey: HexKey; resourceDefId: DefId<"resource"> }
+  | { kind: "CivilizationDiscovered"; playerId: PlayerId; hexKey: HexKey; discoveredPlayerId: PlayerId }
+  | { kind: "GameOver"; winnerPlayerId: PlayerId; victoryType: DefId<"victory"> };
 
 export interface CommandRejection {
   readonly code: "malformed" | "not_your_turn" | "unknown_entity" | "not_owner" | "illegal";
