@@ -3,6 +3,7 @@ import { createPrng } from "@freevilisation/engine";
 import { generateFeatures, FEATURE } from "./features.js";
 import { generateLandmass } from "./landmass.js";
 import { generateClimate } from "./climate.js";
+import { generateWater } from "./water.js";
 import type { MapGenParams } from "../pipeline.js";
 
 const FEATURE_IDS = Object.values(FEATURE);
@@ -27,12 +28,17 @@ function runFeatures(params: MapGenParams) {
     prng: climatePrng,
     onProgress: () => {},
   });
+  const waterPrng = createPrng(params.seed).fork("water");
+  const water = generateWater(params, landmass, climate, {
+    prng: waterPrng,
+    onProgress: () => {},
+  });
   const featuresPrng = createPrng(params.seed).fork("features");
-  const features = generateFeatures(params, climate, {
+  const features = generateFeatures(params, climate, water, {
     prng: featuresPrng,
     onProgress: () => {},
   });
-  return { landmass, climate, features };
+  return { landmass, climate, water, features };
 }
 
 describe("generateFeatures", () => {
@@ -49,12 +55,22 @@ describe("generateFeatures", () => {
     expect(features.featureDefId.length).toBe(landmass.width * landmass.height);
   });
 
-  it("every ocean tile (isLand=false) gets null", () => {
+  it("an ocean tile (isLand=false) gets null unless water.ts placed polar ice there", () => {
     const params = makeParams();
-    const { landmass, features } = runFeatures(params);
+    const { landmass, water, features } = runFeatures(params);
     for (let i = 0; i < landmass.isLand.length; i++) {
-      if (!landmass.isLand[i]) {
+      if (!landmass.isLand[i] && water.featureDefId[i] === null) {
         expect(features.featureDefId[i]).toBeNull();
+      }
+    }
+  });
+
+  it("merges water.ts's polar ice into the final featureDefId unchanged", () => {
+    const params = makeParams();
+    const { water, features } = runFeatures(params);
+    for (let i = 0; i < water.featureDefId.length; i++) {
+      if (water.featureDefId[i] !== null) {
+        expect(features.featureDefId[i]).toBe(water.featureDefId[i]);
       }
     }
   });
@@ -80,6 +96,8 @@ describe("generateFeatures", () => {
           terrain_tundra: ["forest"],
           terrain_grassland: ["jungle", "marsh"],
           terrain_snow: ["ice"],
+          terrain_ocean: ["ice"], // water.ts's polar ice, merged in by generateFeatures
+          terrain_coast: ["ice"],
         };
         const featureName = Object.entries(FEATURE).find(
           ([, fid]) => fid === features.featureDefId[i],

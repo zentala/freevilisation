@@ -41,6 +41,13 @@ export interface MapTypePreset {
    * touches a map edge.
    */
   readonly maxLakeSize: number;
+  /**
+   * Poleward-latitude cutoff for polar ice, in the same [0,1] units as
+   * `1 - equatorWeight(r, height)` (0 = equator, 1 = pole). A water tile
+   * becomes `feature_ice` once its noise-perturbed poleward latitude
+   * reaches this value (Unciv's `spawnIce()` tunable). Lower = more ice.
+   */
+  readonly iceLatitudeThreshold: number;
 }
 
 /** Per-map-type noise presets. */
@@ -55,6 +62,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     lacunarity: 2,
     targetLandFraction: 0.42,
     maxLakeSize: 25,
+    iceLatitudeThreshold: 0.85,
   },
   pangaea: {
     continentFrequency: 1,
@@ -66,6 +74,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     lacunarity: 2,
     targetLandFraction: 0.55,
     maxLakeSize: 25,
+    iceLatitudeThreshold: 0.85,
   },
   archipelago: {
     continentFrequency: 8,
@@ -77,6 +86,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     lacunarity: 2,
     targetLandFraction: 0.3,
     maxLakeSize: 25,
+    iceLatitudeThreshold: 0.8,
   },
   islands: {
     continentFrequency: 16,
@@ -88,6 +98,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     lacunarity: 2,
     targetLandFraction: 0.18,
     maxLakeSize: 20,
+    iceLatitudeThreshold: 0.78,
   },
 };
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createPrng, type TerrainDefId } from "@freevilisation/engine";
-import { generateWater, TERRAIN_LAKE } from "./water.js";
+import { generateWater, TERRAIN_LAKE, FEATURE_ICE } from "./water.js";
 import { TERRAIN } from "./climate.js";
 import type { LandmassResult } from "./landmass.js";
 import type { ClimateResult } from "./climate.js";
@@ -131,5 +131,111 @@ describe("wraparound regression — the seam the epic calls out", () => {
     for (const size of notWrapped.componentSize) {
       expect(size).toBeLessThan(MAP_TYPE_PRESETS.continents.maxLakeSize);
     }
+  });
+});
+
+/** Builds an all-ocean map (no land at all) of the given size. */
+function buildOceanMap(
+  width: number,
+  height: number,
+): { landmass: LandmassResult; climate: ClimateResult } {
+  const total = width * height;
+  return {
+    landmass: {
+      width,
+      height,
+      elevation: new Array<number>(total).fill(0.1),
+      isLand: new Array<boolean>(total).fill(false),
+    },
+    climate: { terrainDefId: new Array<TerrainDefId>(total).fill(TERRAIN.ocean) },
+  };
+}
+
+describe("generateWater — polar ice", () => {
+  it("places ice at the poles and never near the equator", () => {
+    const width = 20;
+    const height = 40;
+    const { landmass, climate } = buildOceanMap(width, height);
+    const result = generateWater(makeParams({ mapType: "islands" }), landmass, climate, CTX);
+
+    // Row 0 is the pole (poleward latitude 0.975) — well above every map
+    // type's threshold even at the noise's maximum perturbation (0.12).
+    for (let q = 0; q < width; q++) expect(result.featureDefId[0 * width + q]).toBe(FEATURE_ICE);
+
+    // The equator row has poleward latitude 0 — never ice, regardless of noise.
+    const equatorRow = 19;
+    for (let q = 0; q < width; q++) expect(result.featureDefId[equatorRow * width + q]).toBeNull();
+  });
+
+  it("the ice/no-ice transition row is not the same for every q — a ragged boundary, not a straight line", () => {
+    const width = 20;
+    const height = 40;
+    const { landmass, climate } = buildOceanMap(width, height);
+    const result = generateWater(makeParams({ mapType: "continents" }), landmass, climate, CTX);
+
+    const iceExtentByQ: number[] = [];
+    for (let q = 0; q < width; q++) {
+      let extent = 0;
+      for (let r = 0; r < height; r++) {
+        if (result.featureDefId[r * width + q] === FEATURE_ICE) extent++;
+      }
+      iceExtentByQ.push(extent);
+    }
+    expect(Math.max(...iceExtentByQ)).not.toBe(Math.min(...iceExtentByQ));
+  });
+
+  it("a lake never gets ice, even at the pole", () => {
+    const width = 20;
+    const height = 40;
+    // Row 1 (poleward latitude 0.925, safely above every threshold) — a
+    // single water tile at q=5, walled in by land on all six hex
+    // neighbours, so it is its own 1-tile component, non-edge, and small
+    // enough to become a lake.
+    const lakeIdx = 1 * width + 5;
+    const { landmass, climate } = buildMap(width, height, [lakeIdx]);
+    const params = makeParams({ mapType: "islands" });
+
+    const result = generateWater(params, landmass, climate, CTX);
+    expect(result.terrainDefId[lakeIdx]).toBe(TERRAIN_LAKE);
+    expect(result.featureDefId[lakeIdx]).toBeNull();
+  });
+
+  it("an ocean tile at the same high latitude as a lake still gets ice", () => {
+    const width = 20;
+    const height = 40;
+    const { landmass, climate } = buildOceanMap(width, height);
+    const result = generateWater(makeParams({ mapType: "islands" }), landmass, climate, CTX);
+    expect(result.featureDefId[1 * width + 5]).toBe(FEATURE_ICE);
+  });
+});
+
+describe("generateWater — polar ice, wraparound", () => {
+  it("ice classification is consistent across the east-west seam for a wrap-joined ocean body", () => {
+    // Two water arcs on a high-latitude row, joined into one component only
+    // through the cylinder seam (mirrors the lake wraparound test above),
+    // to prove the wrap-aware flood fill keeps this ocean (not a lake) so
+    // ice can apply to it — including the tiles that sit right at the seam.
+    const width = 30;
+    const height = 40;
+    const row = 1; // poleward latitude 0.925 — safely above every threshold
+    const total = width * height;
+    const isLand = new Array<boolean>(total).fill(true);
+    const terrainDefId = new Array<TerrainDefId>(total).fill(TERRAIN.grassland);
+    const arcA = Array.from({ length: 13 }, (_, i) => row * width + i); // q 0..12
+    const arcB = Array.from({ length: 13 }, (_, i) => row * width + (17 + i)); // q 17..29
+    for (const idx of [...arcA, ...arcB]) {
+      isLand[idx] = false;
+      terrainDefId[idx] = TERRAIN.ocean;
+    }
+    const landmass: LandmassResult = { width, height, elevation: new Array<number>(total).fill(0.5), isLand };
+    const climate: ClimateResult = { terrainDefId };
+
+    const result = generateWater(makeParams({ mapType: "islands" }), landmass, climate, CTX);
+
+    // Not reclassified as a lake — same assertion the T01 wraparound test makes.
+    for (const idx of [...arcA, ...arcB]) expect(result.terrainDefId[idx]).not.toBe(TERRAIN_LAKE);
+    // The seam tiles (q = 29 and q = 0, adjacent across the wrap) both get ice.
+    expect(result.featureDefId[row * width + 29]).toBe(FEATURE_ICE);
+    expect(result.featureDefId[row * width + 0]).toBe(FEATURE_ICE);
   });
 });

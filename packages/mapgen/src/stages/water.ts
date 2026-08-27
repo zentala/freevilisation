@@ -1,16 +1,94 @@
-import type { TerrainDefId } from "@freevilisation/engine";
+import type { FeatureDefId, Prng, TerrainDefId } from "@freevilisation/engine";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { LandmassResult } from "./landmass.js";
-import type { ClimateResult } from "./climate.js";
+import { TERRAIN, type ClimateResult } from "./climate.js";
 import { MAP_TYPE_PRESETS, wrapContextFor } from "../config.js";
 import { floodComponents, type FloodGrid } from "../flood.js";
+import { fractalNoise2D } from "../noise.js";
+import { equatorWeight } from "../latitude.js";
 
 /** Fresh, non-sailable-by-ocean-ships water — distinct from the default ocean terrain. */
 export const TERRAIN_LAKE = "terrain_lake" as TerrainDefId;
 
+/**
+ * Polar ice. Defined here rather than in `features.ts` because `water.ts`
+ * decides where it goes on water tiles; `features.ts` imports this constant
+ * back for the land case (snow-tile ice) so the two placements share one id
+ * instead of two literals that could drift apart. See the "ice ownership"
+ * comment on `generateFeatures` for the full split.
+ */
+export const FEATURE_ICE = "feature_ice" as FeatureDefId;
+
 export interface WaterResult {
   /** `climate.terrainDefId` with enclosed small water components reclassified as `terrain_lake`. */
   readonly terrainDefId: TerrainDefId[];
+  /**
+   * `feature_ice` on ocean/coast tiles above the map type's latitude
+   * threshold; `null` everywhere else, including lakes (see `placeIce`).
+   * Index-aligned with `terrainDefId`, disjoint from `features.ts`'s land
+   * placements — merged into the pipeline's final `featureDefId` by
+   * `generateFeatures`.
+   */
+  readonly featureDefId: (FeatureDefId | null)[];
+}
+
+function drawSeed(prng: Prng): number {
+  return Math.floor(prng.next() * 0x100000000) >>> 0;
+}
+
+/** Frequency/octave shape for the ragged ice-boundary noise, same order of magnitude as `features.ts`'s density noise. */
+const ICE_NOISE_FREQUENCY = 8;
+const ICE_NOISE_OCTAVES = 3;
+const ICE_NOISE_PERSISTENCE = 0.5;
+const ICE_NOISE_LACUNARITY = 2;
+/** How far the noise can perturb the latitude cutoff, in the same [0,1] "poleward" units as `equatorWeight`. */
+const ICE_NOISE_AMPLITUDE = 0.12;
+
+/**
+ * Places `feature_ice` on ocean/coast tiles whose noise-perturbed poleward
+ * latitude exceeds `latitudeThreshold`.
+ *
+ * Lakes do not freeze in v1 — a deliberate simplification, not an
+ * oversight: fresh water bodies are small and scattered, and a per-lake
+ * freeze rule belongs with whatever ruleset epic first cares about it, not
+ * with the raw classification pass. Land ice (snow-tile ice) is placed
+ * separately by `features.ts`; the two never touch the same tile because
+ * `FEATURE_VALID_TERRAINS` in `features.ts` requires land terrain, and this
+ * function requires ocean or coast.
+ */
+function placeIce(
+  width: number,
+  height: number,
+  terrainDefId: readonly TerrainDefId[],
+  latitudeThreshold: number,
+  icePrng: Prng,
+): (FeatureDefId | null)[] {
+  const featureDefId = new Array<FeatureDefId | null>(width * height).fill(null);
+  const seed = drawSeed(icePrng);
+
+  for (let r = 0; r < height; r++) {
+    const poleward = 1 - equatorWeight(r, height);
+    for (let q = 0; q < width; q++) {
+      const idx = r * width + q;
+      const terrain = terrainDefId[idx]!;
+      if (terrain !== TERRAIN.ocean && terrain !== TERRAIN.coast) continue;
+
+      const noise = fractalNoise2D(
+        (q * ICE_NOISE_FREQUENCY) / width,
+        (r * ICE_NOISE_FREQUENCY) / height,
+        seed,
+        ICE_NOISE_OCTAVES,
+        ICE_NOISE_PERSISTENCE,
+        ICE_NOISE_LACUNARITY,
+      );
+      const perturbed = poleward + (noise - 0.5) * 2 * ICE_NOISE_AMPLITUDE;
+      if (perturbed >= latitudeThreshold) {
+        featureDefId[idx] = FEATURE_ICE;
+      }
+    }
+  }
+
+  return featureDefId;
 }
 
 /** A component touches a map edge when one of its tiles sits in row 0 or the last row (north/south are hard edges, never wrapped). */
@@ -63,6 +141,10 @@ export function generateWater(
     }
   }
 
+  const icePrng = ctx.prng.fork("ice");
+  const latitudeThreshold = MAP_TYPE_PRESETS[params.mapType].iceLatitudeThreshold;
+  const featureDefId = placeIce(width, height, terrainDefId, latitudeThreshold, icePrng);
+
   ctx.onProgress(100);
-  return { terrainDefId };
+  return { terrainDefId, featureDefId };
 }

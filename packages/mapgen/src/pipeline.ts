@@ -153,7 +153,7 @@ function runStages(params: MapGenParams, progress: (pct: number) => void): MapGe
   progress(SLICE_BOUNDARIES[4]);
 
   const featuresPrng = root.fork("features");
-  const features = generateFeatures(params, climate, {
+  const features = generateFeatures(params, climate, water, {
     prng: featuresPrng,
     onProgress: sliceProgress(4),
   });
