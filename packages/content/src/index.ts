@@ -13,3 +13,5 @@ export type {
   PrimitiveShape,
   PrimitiveSpec,
 } from "./assets/manifest.js";
+export { validateAssetManifest } from "./assets/manifestValidation.js";
+export type { ManifestValidationOptions } from "./assets/manifestValidation.js";
