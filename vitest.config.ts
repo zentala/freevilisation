@@ -16,7 +16,12 @@ export default defineConfig({
         // mapgen gets real code in E04; hold it to the same floor as engine
         // rather than a 100% bar that new generation code cannot clear.
         "packages/mapgen/src/**": { statements: 85, branches: 75, functions: 78, lines: 88 },
-        "packages/engine/src/**": { statements: 85, branches: 75, functions: 78, lines: 88 },
+        "packages/engine/src/**": {
+          statements: 100,
+          branches: 100,
+          functions: 100,
+          lines: 100,
+        },
       },
     },
   },
