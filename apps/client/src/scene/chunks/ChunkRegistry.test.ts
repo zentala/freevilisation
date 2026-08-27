@@ -31,4 +31,15 @@ describe("ChunkRegistry", () => {
     registry.markDirty(coord);
     expect(registry.get(chunk.key)?.dirty).toBe(true);
   });
+
+  it("lists and consumes only dirty chunks", () => {
+    const registry = new ChunkRegistry();
+    const first = registry.ensure({ q: 0, r: 0 });
+    const second = registry.ensure({ q: 16, r: 0 });
+    registry.markClean(first.key);
+
+    expect(registry.dirtyChunks().map((chunk) => chunk.key)).toEqual([second.key]);
+    expect(registry.consumeDirty()).toEqual([second.key]);
+    expect(registry.dirtyChunks()).toEqual([]);
+  });
 });

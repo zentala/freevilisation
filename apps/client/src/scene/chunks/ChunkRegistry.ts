@@ -53,6 +53,18 @@ export class ChunkRegistry {
     if (chunk) chunk.dirty = false;
   }
 
+  /** Returns chunks changed since the last render pass in stable insertion order. */
+  dirtyChunks(): readonly ChunkState[] {
+    return [...this.chunks.values()].filter((chunk) => chunk.dirty);
+  }
+
+  /** Marks all currently dirty chunks clean and returns the affected keys. */
+  consumeDirty(): readonly ChunkKey[] {
+    const dirty = this.dirtyChunks().map((chunk) => chunk.key);
+    for (const key of dirty) this.markClean(key);
+    return dirty;
+  }
+
   get(key: ChunkKey): ChunkState | undefined {
     return this.chunks.get(key);
   }

@@ -12,6 +12,8 @@ export interface TerrainChunksProps {
 export interface TerrainTile {
   readonly coord: AxialCoord;
   readonly terrainDefId: TerrainDefId;
+  readonly improvementDefId?: string | null;
+  readonly borderMask?: number;
 }
 
 export interface TerrainBatch {
@@ -69,6 +71,52 @@ function createMesh(tiles: readonly TerrainTile[]): THREE.InstancedMesh {
   mesh.instanceMatrix.needsUpdate = true;
   mesh.userData.terrainDefId = terrain;
   return mesh;
+}
+
+/**
+ * Patches the matrix for one tile without rebuilding its InstancedMesh.
+ * The caller owns batch membership; this is intentionally a small render
+ * primitive so terrain, improvement, and border events share the same path.
+ */
+export function updateTerrainBatchMatrix(
+  mesh: THREE.InstancedMesh,
+  tiles: readonly TerrainTile[],
+  coord: AxialCoord,
+): boolean {
+  const index = tiles.findIndex((tile) => tile.coord.q === coord.q && tile.coord.r === coord.r);
+  if (index < 0) return false;
+  const position = axialToWorld(coord);
+  mesh.setMatrixAt(index, new THREE.Matrix4().makeTranslation(position.x, position.y, position.z));
+  mesh.instanceMatrix.needsUpdate = true;
+  return true;
+}
+
+/** Updates only the batch containing a changed tile and records its chunk. */
+export class TerrainBatchUpdater {
+  private readonly registry = new ChunkRegistry();
+
+  constructor(private readonly batches: readonly TerrainBatchTarget[]) {
+    for (const batch of batches) {
+      for (const tile of batch.tiles) this.registry.ensure(tile.coord);
+    }
+  }
+
+  update(coord: AxialCoord): boolean {
+    this.registry.markDirty(coord);
+    const target = this.batches.find((batch) =>
+      batch.tiles.some((tile) => tile.coord.q === coord.q && tile.coord.r === coord.r),
+    );
+    return target ? updateTerrainBatchMatrix(target.mesh, target.tiles, coord) : false;
+  }
+
+  consumeDirtyChunks(): readonly string[] {
+    return this.registry.consumeDirty();
+  }
+}
+
+export interface TerrainBatchTarget {
+  readonly mesh: THREE.InstancedMesh;
+  readonly tiles: readonly TerrainTile[];
 }
 
 /** Renders one raw InstancedMesh for each terrain/chunk pair. */
