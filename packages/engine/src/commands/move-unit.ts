@@ -19,6 +19,11 @@ function withOccupants(tile: Tile, occupantUnitIds: UnitId[]): Tile {
   );
 }
 
+function isWater(tile: Tile): boolean {
+  const terrain = (tile.terrainDefId as string).replace(/^terrain_/, "").toLowerCase();
+  return terrain === "coast" || terrain === "ocean" || terrain === "lake";
+}
+
 /** Returns true if `to` is one of the six hex neighbours of `from`. */
 function isAdjacent(from: HexKey, to: HexKey, wrap: WrapContext): boolean {
   const fromCoord = fromHexKey(from);
@@ -80,6 +85,7 @@ export function handleMoveUnit(
   const unit = state.entities.units[command.unitId]!;
   const prevCoord = unit.coord;
   let movesLeft = unit.movesLeft;
+  let embarked = unit.isEmbarked;
   let traveledCount = 0;
   while (traveledCount < command.path.length) {
     const from = traveledCount === 0 ? unit.coord : command.path[traveledCount - 1]!;
@@ -87,6 +93,13 @@ export function handleMoveUnit(
     if (!Number.isFinite(cost) || cost > movesLeft) break;
     movesLeft -= cost;
     traveledCount++;
+    const destination = state.map.tiles[command.path[traveledCount - 1]!]!;
+    const enteringWater = isWater(destination);
+    if (enteringWater !== embarked) {
+      embarked = enteringWater;
+      if (enteringWater) movesLeft = 0;
+      if (enteringWater) break;
+    }
   }
   const traveled = command.path.slice(0, traveledCount);
   const newMovesLeft = movesLeft;
@@ -104,7 +117,7 @@ export function handleMoveUnit(
     unit.promotions,
     unit.experience,
     unit.fortifiedTurns,
-    unit.isEmbarked,
+    embarked,
     command.path.slice(traveledCount),
   );
 

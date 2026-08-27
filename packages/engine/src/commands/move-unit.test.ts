@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { HexKey } from "../ids.js";
+import type { HexKey, TerrainDefId } from "../ids.js";
 import { applyCommand } from "./pipeline.js";
 import { P1, U1, makeBaseState } from "./test-fixtures.js";
 
@@ -51,6 +51,34 @@ describe("applyCommand — MoveUnit", () => {
     expect(result.state.map.tiles["0,0" as HexKey]!.occupantUnitIds).toEqual([]);
     expect(result.state.map.tiles["1,0" as HexKey]!.occupantUnitIds).toEqual([U1]);
     expect(state.map.tiles["0,0" as HexKey]!.occupantUnitIds).toEqual([U1]);
+  });
+
+  it("embarks on water and spends the remaining movement budget", () => {
+    const state = makeBaseState();
+    state.map.tiles["1,0" as HexKey]!.terrainDefId = "terrain_ocean" as TerrainDefId;
+    const result = applyCommand(state, {
+      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("expected embark");
+    expect(result.state.entities.units[U1]!.isEmbarked).toBe(true);
+    expect(result.state.entities.units[U1]!.movesLeft).toBe(0);
+  });
+
+  it("disembarks an embarked unit onto adjacent land", () => {
+    const state = makeBaseState();
+    state.map.tiles["0,0" as HexKey]!.terrainDefId = "terrain_coast" as TerrainDefId;
+    const unit = state.entities.units[U1]!;
+    unit.isEmbarked = true;
+    unit.coord = "0,0" as HexKey;
+    const result = applyCommand(state, {
+      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("expected disembark");
+    expect(result.state.entities.units[U1]!.isEmbarked).toBe(false);
   });
 
   it("returns a new state object", () => {

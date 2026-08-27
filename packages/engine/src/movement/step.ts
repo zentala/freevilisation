@@ -55,7 +55,7 @@ function edgeModifier(state: GameState, from: HexKey, to: HexKey, base: number):
 /** Returns the composed cost of entering an adjacent destination hex. */
 export function stepCost(
   state: GameState,
-  _unit: UnitId,
+  unit: UnitId,
   from: HexKey,
   to: HexKey,
 ): number {
@@ -64,6 +64,10 @@ export function stepCost(
   if (!fromTile || !destination || edgeDirection(from, to, toWrapContext(state.map)) < 0) {
     return Number.POSITIVE_INFINITY;
   }
+  const unitEntity = state.entities.units[unit];
+  const water = ["coast", "ocean", "lake"].includes(terrainName(destination));
+  const fromWater = ["coast", "ocean", "lake"].includes(terrainName(fromTile));
+  if (water && unitEntity && !unitEntity.isEmbarked && fromWater) return Number.POSITIVE_INFINITY;
   const terrain = terrainCost(destination);
   const feature = featureCost(destination);
   if (!Number.isFinite(terrain) || !Number.isFinite(feature) || terrain + feature <= 0) {
