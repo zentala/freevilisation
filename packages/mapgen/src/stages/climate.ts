@@ -1,5 +1,5 @@
-import { neighbors, type Prng, type TerrainDefId, type WrapContext } from "@freevilisation/engine";
-import { fractalNoise2D, percentileThreshold } from "../noise.js";
+import { neighbors, type TerrainDefId, type WrapContext } from "@freevilisation/engine";
+import { drawSeed, fractalNoise2D, percentileThreshold } from "../noise.js";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { LandmassResult } from "./landmass.js";
 import { wrapContextFor } from "../config.js";
@@ -17,10 +17,6 @@ export const TERRAIN = {
 
 export interface ClimateResult {
   readonly terrainDefId: TerrainDefId[];
-}
-
-function drawSeed(prng: Prng): number {
-  return Math.floor(prng.next() * 0x100000000) >>> 0;
 }
 
 /** Moisture noise parameters — chosen in the same order of magnitude as config.ts presets. */

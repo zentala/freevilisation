@@ -1,3 +1,13 @@
+import type { Prng } from "@freevilisation/engine";
+
+/**
+ * Draws a uint32 seed from a `Prng`, for handing to `fractalNoise2D`/
+ * `valueNoise2D` (which take a plain integer seed, not a `Prng`).
+ */
+export function drawSeed(prng: Prng): number {
+  return Math.floor(prng.next() * 0x100000000) >>> 0;
+}
+
 /**
  * Deterministic lattice hash for value noise.
  *

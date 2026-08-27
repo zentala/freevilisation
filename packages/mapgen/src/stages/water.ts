@@ -4,7 +4,7 @@ import type { LandmassResult } from "./landmass.js";
 import { TERRAIN, type ClimateResult } from "./climate.js";
 import { MAP_TYPE_PRESETS, wrapContextFor } from "../config.js";
 import { floodComponents, type FloodGrid } from "../flood.js";
-import { fractalNoise2D } from "../noise.js";
+import { drawSeed, fractalNoise2D } from "../noise.js";
 import { equatorWeight } from "../latitude.js";
 
 /** Fresh, non-sailable-by-ocean-ships water — distinct from the default ocean terrain. */
@@ -30,10 +30,6 @@ export interface WaterResult {
    * `generateFeatures`.
    */
   readonly featureDefId: (FeatureDefId | null)[];
-}
-
-function drawSeed(prng: Prng): number {
-  return Math.floor(prng.next() * 0x100000000) >>> 0;
 }
 
 /** Frequency/octave shape for the ragged ice-boundary noise, same order of magnitude as `features.ts`'s density noise. */

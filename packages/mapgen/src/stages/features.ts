@@ -1,5 +1,5 @@
-import type { Prng, FeatureDefId, TerrainDefId } from "@freevilisation/engine";
-import { fractalNoise2D } from "../noise.js";
+import type { FeatureDefId, TerrainDefId } from "@freevilisation/engine";
+import { drawSeed, fractalNoise2D } from "../noise.js";
 import type { MapGenParams, StageContext } from "../pipeline.js";
 import type { ClimateResult } from "./climate.js";
 import { FEATURE_ICE, type WaterResult } from "./water.js";
@@ -14,10 +14,6 @@ export const FEATURE = {
 
 export interface FeaturesResult {
   readonly featureDefId: (FeatureDefId | null)[];
-}
-
-function drawSeed(prng: Prng): number {
-  return Math.floor(prng.next() * 0x100000000) >>> 0;
 }
 
 const FEATURE_VALID_TERRAINS: readonly TerrainDefId[][] = [

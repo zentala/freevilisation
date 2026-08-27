@@ -1,5 +1,4 @@
-import type { Prng } from "@freevilisation/engine";
-import { fractalNoise2D, percentileThreshold } from "../noise.js";
+import { drawSeed, fractalNoise2D, percentileThreshold } from "../noise.js";
 import { MAP_SIZES, MAP_TYPE_PRESETS } from "../config.js";
 import { equatorWeight } from "../latitude.js";
 import type { MapGenParams, StageContext } from "../pipeline.js";
@@ -14,10 +13,6 @@ export interface LandmassResult {
   readonly elevation: number[];
   /** Land flag per tile, index-aligned with `elevation`. */
   readonly isLand: boolean[];
-}
-
-function drawSeed(prng: Prng): number {
-  return Math.floor(prng.next() * 0x100000000) >>> 0;
 }
 
 /**
