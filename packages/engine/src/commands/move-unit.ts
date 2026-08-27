@@ -8,6 +8,7 @@ import { neighbors, type WrapContext } from "../hex/hex-math.js";
 import { toWrapContext } from "../hex/game-map.js";
 import { stepCost } from "../movement/step.js";
 import { Tile } from "../entities/Tile.js";
+import { updatePlayerVisibility } from "../visibility.js";
 
 function withOccupants(tile: Tile, occupantUnitIds: UnitId[]): Tile {
   return new Tile(
@@ -133,13 +134,14 @@ export function handleMoveUnit(
     },
   ];
 
+  const nextState = {
+    ...state,
+    map: { ...state.map, tiles: nextTiles },
+    entities: { ...state.entities, units: nextUnits },
+  };
   return {
     ok: true,
-    state: {
-      ...state,
-      map: { ...state.map, tiles: nextTiles },
-      entities: { ...state.entities, units: nextUnits },
-    },
+    state: updatePlayerVisibility(nextState, command.playerId, to, 2),
     events,
   };
 }
