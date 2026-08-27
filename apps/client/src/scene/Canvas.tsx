@@ -1,6 +1,7 @@
 import { Canvas as R3FCanvas } from "@react-three/fiber";
 import type { ReactNode } from "react";
 import * as THREE from "three";
+import { CameraRig } from "./CameraRig";
 
 type SceneShellProps = {
   children?: ReactNode;
@@ -8,11 +9,6 @@ type SceneShellProps = {
 
 /** Empty scene slot for the chunk renderer added in a later renderer wave. */
 export function TerrainChunks({ children }: SceneShellProps) {
-  return <>{children}</>;
-}
-
-/** Empty scene slot for the RTS camera rig added in the next renderer wave. */
-export function CameraRig({ children }: SceneShellProps) {
   return <>{children}</>;
 }
 
