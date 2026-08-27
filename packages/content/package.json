@@ -16,6 +16,7 @@
     "typecheck": "tsc --build"
   },
   "dependencies": {
-    "@freevilisation/engine": "workspace:*"
+    "@freevilisation/engine": "workspace:*",
+    "zod": "^4.4.3"
   }
 }
