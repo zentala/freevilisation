@@ -63,6 +63,9 @@ export type { DeterminismRun } from "./testing/determinism-harness.js";
 
 export { assertInvariants } from "./invariants.js";
 
+export { advancePhase, TURN_PHASES } from "./turn/phases.js";
+export type { TurnPhase } from "./turn/phases.js";
+
 export type { AxialCoord } from "./hex/coords.js";
 export { cubeS, toHexKey, fromHexKey, coordsEqual } from "./hex/coords.js";
 
