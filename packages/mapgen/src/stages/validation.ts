@@ -2,7 +2,7 @@ import { createPrng, type WrapContext } from "@freevilisation/engine";
 import type { MapGenParams, MapGenResult } from "../pipeline.js";
 import { MAP_TYPE_PRESETS } from "../config.js";
 import { TERRAIN } from "./climate.js";
-import { floodComponents as sharedFloodComponents, type FloodGrid } from "../flood.js";
+import { floodComponents as sharedFloodComponents, type FloodGrid, type FloodResult } from "../flood.js";
 
 /**
  * Connected-component tile count below which a landmass is deleted rather
@@ -18,13 +18,6 @@ const PANGAEA_DOMINANT_FRACTION = 0.85;
 
 /** Bounded retries for failures a local repair cannot fix (stranded start, wrong shape). */
 export const MAX_REROLL_ATTEMPTS = 5;
-
-interface FloodResult {
-  /** Component id per tile index, `-1` for water tiles. */
-  readonly componentId: number[];
-  /** Tile count per component id, index-aligned with the id. */
-  readonly componentSize: number[];
-}
 
 export interface ValidationSuccess {
   readonly ok: true;
