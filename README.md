@@ -59,7 +59,8 @@ enforced by ESLint.
 
 Conventions every contributor and agent is expected to follow — build order,
 hex geometry, command validation, determinism — are in
-[CLAUDE.md](CLAUDE.md).
+[CLAUDE.md](CLAUDE.md). CI quality gates and what blocks a merge to `main`
+are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
