@@ -92,3 +92,11 @@ export type { IsPassable, CostFn } from "./hex/graph.js";
 export { neighborsOf, edgeCost } from "./hex/graph.js";
 
 export { hasRiverEdge } from "./hex/river-edges.js";
+
+export {
+  canSpendMovement,
+  createMovementBudget,
+  findPath,
+  spendMovement,
+} from "./movement/index.js";
+export type { MovementBudget, MovementPoints } from "./movement/index.js";
