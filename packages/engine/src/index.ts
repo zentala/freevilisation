@@ -81,6 +81,9 @@ export type { ResearchResult, ResearchRules } from "./turn/research.js";
 export type { CurrentResearch } from "./entities/Player.js";
 
 export type { AxialCoord } from "./hex/coords.js";
+export { createVisibilityGrid, updateVisibility, updatePlayerVisibility } from "./visibility.js";
+export type { VisibilityGrid } from "./visibility.js";
+export { VisibilityState } from "./visibility.js";
 export { cubeS, toHexKey, fromHexKey, coordsEqual } from "./hex/coords.js";
 
 export {
