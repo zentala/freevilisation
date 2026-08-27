@@ -5,7 +5,6 @@ import type { ClimateResult } from "./climate.js";
 import type { ResourcesResult } from "./resources.js";
 import { TERRAIN } from "./climate.js";
 import { wrapContextFor } from "../config.js";
-import { normalizeStartPositions } from "./start-positions-normalize.js";
 
 /** Default player count when `MapGenParams.numPlayers` is omitted. */
 const DEFAULT_NUM_PLAYERS = 4;
@@ -21,7 +20,7 @@ const MAX_FLOOR_RELAXATIONS = 5;
  * fixture exists yet — see task notes). Ocean/coast are intentionally absent:
  * they are never candidate tiles (step 1 filters to land only).
  */
-export const TERRAIN_QUALITY: Partial<Record<TerrainDefId, number>> = {
+const TERRAIN_QUALITY: Partial<Record<TerrainDefId, number>> = {
   [TERRAIN.grassland]: 3,
   [TERRAIN.plains]: 2,
   [TERRAIN.tundra]: 1,
@@ -212,13 +211,5 @@ export function placeStartPositions(
     q,
     r,
   }));
-  normalizeStartPositions(
-    startPositions,
-    landmass,
-    climate,
-    resources,
-    wrap,
-    ctx.prng.fork("normalize"),
-  );
   return { startPositions };
 }
