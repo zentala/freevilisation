@@ -2,12 +2,15 @@ import type { AxialCoord, TerrainDefId } from "@freevilisation/engine";
 import { useMemo } from "react";
 import * as THREE from "three";
 import { axialToWorld } from "../hexMath";
+import { wrapOffsets } from "../wraparound";
 import { ChunkRegistry } from "./ChunkRegistry";
 import { chunkBoundsBox } from "./chunkFrustum";
 
 export interface TerrainChunksProps {
   readonly coordinates?: readonly AxialCoord[];
   readonly tiles?: readonly TerrainTile[];
+  readonly isWraparoundX?: boolean;
+  readonly mapWidth?: number;
 }
 
 export interface TerrainTile {
@@ -151,7 +154,7 @@ export interface TerrainBatchTarget {
 }
 
 /** Renders one raw InstancedMesh for each terrain/chunk pair. */
-export function TerrainChunks({ coordinates = [], tiles }: TerrainChunksProps) {
+export function TerrainChunks({ coordinates = [], tiles, isWraparoundX = false, mapWidth = 1 }: TerrainChunksProps) {
   const meshes = useMemo(() => {
     const source = tiles ?? defaultTiles(coordinates);
     const registry = new ChunkRegistry();
@@ -163,9 +166,11 @@ export function TerrainChunks({ coordinates = [], tiles }: TerrainChunksProps) {
 
   return (
     <group>
-      {meshes.map(({ key, mesh }) => (
-        <primitive key={key} object={mesh} />
-      ))}
+      {meshes.flatMap(({ key, mesh }) =>
+        wrapOffsets(isWraparoundX, mapWidth).map((offset) => (
+          <primitive key={`${key}:${offset}`} object={offset === 0 ? mesh : mesh.clone()} position={[offset, 0, 0]} />
+        )),
+      )}
     </group>
   );
 }
