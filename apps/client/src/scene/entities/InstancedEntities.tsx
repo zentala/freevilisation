@@ -3,6 +3,7 @@ import type { HexKey } from "@freevilisation/engine";
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { InstancedMesh, Object3D } from "three";
 import { axialToWorld } from "../hexMath";
+import { stackOffset } from "./stacking";
 
 export type EntityKind = "unit" | "city";
 export type VisibilityBucket = "visible" | "explored" | "unexplored";
@@ -28,7 +29,11 @@ function EntityBatch({ bucket, registry }: { readonly bucket: EntityBucket; read
     if (!target) return;
     bucket.entities.forEach((entity, index) => {
       const [q = 0, r = 0] = entity.hexKey.split(",").map(Number);
+      const offset = stackOffset(bucket.key.startsWith("city:") ? "city" : "unit", index);
       marker.position.copy(axialToWorld({ q, r }));
+      marker.position.x += offset.x;
+      marker.position.y += offset.y;
+      marker.position.z += offset.z;
       target.setMatrixAt(index, marker.matrix);
     });
     target.instanceMatrix.needsUpdate = true;
