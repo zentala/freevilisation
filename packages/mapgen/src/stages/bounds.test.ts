@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { distance } from "@freevilisation/engine";
 import { generateMap } from "../pipeline.js";
 import type { MapType } from "../pipeline.js";
-import { MAP_TYPE_PRESETS, wrapContextFor } from "../config.js";
+import { MAP_TYPE_PRESETS } from "../config.js";
 import { LAND_FRACTION_TOLERANCE } from "./validation.js";
 
 /**
@@ -87,7 +87,7 @@ describe("mapgen — statistical bounds", () => {
       it(`${numPlayers} players: minimum pairwise start distance is at least ${MIN_START_DISTANCE_FLOOR} in every seed of a ${START_POSITION_BATCH_SIZE}-seed batch`, () => {
         for (let seed = 0; seed < START_POSITION_BATCH_SIZE; seed++) {
           const result = generateMap({ seed, mapType: "continents", mapSize: SAMPLE_MAP_SIZE, numPlayers });
-          const wrap = wrapContextFor(result.width);
+          const wrap = { isWraparoundX: result.isWraparoundX, width: result.width };
           const positions = result.startPositions;
           let minDistance = Infinity;
           for (let i = 0; i < positions.length; i++) {
