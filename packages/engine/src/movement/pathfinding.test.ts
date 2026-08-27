@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { EntityId, HexKey, TerrainDefId } from "../ids.js";
+import type { EntityId, HexKey, TerrainDefId, UnitId } from "../ids.js";
 import { Tile } from "../entities/Tile.js";
 import { buildGameMap } from "../hex/game-map.js";
 import { toHexKey } from "../hex/coords.js";
@@ -65,6 +65,35 @@ describe("findPath interface", () => {
     const state = makeState();
     (state.map.tiles["1,0" as HexKey] as unknown as { movementCost: number }).movementCost = 5;
     expect(findPath(state, "0,0" as HexKey, "1,1" as HexKey)).toEqual(["0,1", "1,1"]);
+  });
+
+  it("accumulates terrain base cost and feature movement cost add", () => {
+    const state = makeState();
+    const expensiveTile = state.map.tiles["1,1" as HexKey]! as unknown as {
+      movementCost: number;
+      movementCostAdd: number;
+    };
+    expensiveTile.movementCost = 2;
+    expensiveTile.movementCostAdd = 3;
+
+    // The direct route costs 2 + 3 + 1. The detour costs four base points.
+    // Either component alone would incorrectly make the direct route cheaper.
+    expect(findPath(state, "0,1" as HexKey, "2,1" as HexKey)).toEqual([
+      "0,0",
+      "1,0",
+      "2,0",
+      "2,1",
+    ]);
+  });
+
+  it("does not apply zone of control or occupancy blocking", () => {
+    const state = makeState();
+    state.map.tiles["1,1" as HexKey]!.occupantUnitIds = ["enemy" as UnitId];
+
+    expect(findPath(state, "0,1" as HexKey, "2,1" as HexKey)).toEqual([
+      "1,1",
+      "2,1",
+    ]);
   });
 
   it("honours east-west map wrapping", () => {
