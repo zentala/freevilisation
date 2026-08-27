@@ -5,8 +5,9 @@
 `main` has no branch protection today. A commit that fails every check in
 `.github/workflows/ci.yml` can still land, because nothing requires the
 checks to pass first. Turning protection on is deliberately deferred — see
-`.plan/BACKLOG.md`, line 265 (the entry starting "`main` has no branch
-protection, so a red commit lands unnoticed", Importance: Medium, Points: 8). The reason: requiring status checks forces
+`.plan/BACKLOG.md`, the entry starting "`main` has no branch protection, so a
+red commit lands unnoticed" (Importance: Medium, Points: 8). The reason:
+requiring status checks forces
 every commit through a pull request, which means adopting a `dev` -> `main`
 flow and rewriting the merge instructions across the plan
 (`ORCHESTRATOR.md` execution rules, each epic's wave-merge step, the
