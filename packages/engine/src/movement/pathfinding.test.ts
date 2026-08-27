@@ -47,11 +47,29 @@ describe("findPath interface", () => {
     expect(findPath(makeState(), key, key)).toEqual([]);
   });
 
-  it("returns null for distinct points until the search implementation lands", () => {
-    expect(findPath(makeState(), "0,0" as HexKey, "1,0" as HexKey)).toBeNull();
+  it("returns a route between distinct points", () => {
+    expect(findPath(makeState(), "0,0" as HexKey, "1,0" as HexKey)).toEqual(["1,0"]);
   });
 
   it("returns null for a hex outside the map", () => {
     expect(findPath(makeState(), "0,0" as HexKey, "9,9" as HexKey)).toBeNull();
+  });
+
+  it("avoids an impassable mountain and chooses the cheaper route", () => {
+    const state = makeState();
+    state.map.tiles["1,0" as HexKey]!.terrainDefId = "terrain_mountain" as TerrainDefId;
+    expect(findPath(state, "0,0" as HexKey, "1,1" as HexKey)).toEqual(["0,1", "1,1"]);
+  });
+
+  it("uses per-tile movement costs when supplied by content", () => {
+    const state = makeState();
+    (state.map.tiles["1,0" as HexKey] as unknown as { movementCost: number }).movementCost = 5;
+    expect(findPath(state, "0,0" as HexKey, "1,1" as HexKey)).toEqual(["0,1", "1,1"]);
+  });
+
+  it("honours east-west map wrapping", () => {
+    const state = makeState();
+    (state.map as unknown as { isWraparoundX: boolean }).isWraparoundX = true;
+    expect(findPath(state, "0,0" as HexKey, "1,0" as HexKey)).toEqual(["1,0"]);
   });
 });
