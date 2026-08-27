@@ -74,7 +74,10 @@ interface ClimateCutoffs {
  * samples, so band boundaries track the observed distribution instead of
  * a fixed value on the raw domain.
  */
-function climateCutoffsFor(landTemps: readonly number[], landMoistures: readonly number[]): ClimateCutoffs {
+function climateCutoffsFor(
+  landTemps: readonly number[],
+  landMoistures: readonly number[],
+): ClimateCutoffs {
   const snowCutoff = percentileThreshold(landTemps, TEMP_SNOW_QUANTILE);
   const coldCutoff = percentileThreshold(landTemps, TEMP_COLD_QUANTILE);
   const temperateCutoff = percentileThreshold(landTemps, TEMP_TEMPERATE_QUANTILE);
@@ -173,7 +176,9 @@ export function generateClimate(
   for (let r = 0; r < height; r++) {
     for (let q = 0; q < width; q++) {
       const idx = r * width + q;
-      terrainDefId[idx] = isLand[idx]! ? landTerrain(temp[idx]!, moisture[idx]!, cutoffs) : TERRAIN.ocean;
+      terrainDefId[idx] = isLand[idx]!
+        ? landTerrain(temp[idx]!, moisture[idx]!, cutoffs)
+        : TERRAIN.ocean;
     }
   }
 

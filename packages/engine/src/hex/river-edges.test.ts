@@ -43,9 +43,7 @@ describe("hasRiverEdge", () => {
   it("resolves an unowned edge (direction 3..5) off the neighbour", () => {
     // Tile (1,1) does not own direction 3 (west); its neighbour in that
     // direction, (0,1), owns the opposite edge at its own index 3-3=0.
-    const map = buildGameMap(3, 3, false, (c) =>
-      makeTile(c, c.q === 0 && c.r === 1, false, false),
-    );
+    const map = buildGameMap(3, 3, false, (c) => makeTile(c, c.q === 0 && c.r === 1, false, false));
     expect(hasRiverEdge(map, { q: 1, r: 1 }, 3)).toBe(true);
   });
 

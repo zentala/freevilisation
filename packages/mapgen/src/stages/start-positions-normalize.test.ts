@@ -9,12 +9,21 @@ import type { ResourcesResult } from "./resources.js";
 import type { LandmassResult } from "./landmass.js";
 
 /** A 3x3 all-land, all-desert map with no resources — a deliberately poor draw. */
-function buildDesertMap(): { landmass: LandmassResult; climate: ClimateResult; resources: ResourcesResult } {
+function buildDesertMap(): {
+  landmass: LandmassResult;
+  climate: ClimateResult;
+  resources: ResourcesResult;
+} {
   const width = 3;
   const height = 3;
   const size = width * height;
   return {
-    landmass: { width, height, elevation: new Array(size).fill(1), isLand: new Array(size).fill(true) },
+    landmass: {
+      width,
+      height,
+      elevation: new Array(size).fill(1),
+      isLand: new Array(size).fill(true),
+    },
     climate: { terrainDefId: new Array(size).fill(TERRAIN.desert) },
     resources: { resourceDefId: new Array(size).fill(null) },
   };
@@ -45,7 +54,14 @@ describe("normalizeStartPositions", () => {
     expect(countGoodNeighbours(climate)).toBe(0);
     expect(countResourceNeighbours(resources)).toBe(0);
 
-    normalizeStartPositions([CENTER], landmass, climate, resources, wrap, createPrng(1).fork("test"));
+    normalizeStartPositions(
+      [CENTER],
+      landmass,
+      climate,
+      resources,
+      wrap,
+      createPrng(1).fork("test"),
+    );
 
     expect(countGoodNeighbours(climate)).toBeGreaterThanOrEqual(2);
     expect(countResourceNeighbours(resources)).toBeGreaterThanOrEqual(1);
@@ -75,12 +91,24 @@ describe("normalizeStartPositions", () => {
     const terrainDefId = new Array(size).fill(TERRAIN.grassland);
     const resourceDefId = new Array(size).fill(null);
     resourceDefId[5] = "resource_wheat"; // neighbour of CENTER (q=1, r=1)
-    const landmass: LandmassResult = { width, height, elevation: new Array(size).fill(1), isLand: new Array(size).fill(true) };
+    const landmass: LandmassResult = {
+      width,
+      height,
+      elevation: new Array(size).fill(1),
+      isLand: new Array(size).fill(true),
+    };
     const climate: ClimateResult = { terrainDefId };
     const resources: ResourcesResult = { resourceDefId };
     const before = { terrainDefId: [...terrainDefId], resourceDefId: [...resourceDefId] };
 
-    normalizeStartPositions([CENTER], landmass, climate, resources, flatWrap(3), createPrng(1).fork("test"));
+    normalizeStartPositions(
+      [CENTER],
+      landmass,
+      climate,
+      resources,
+      flatWrap(3),
+      createPrng(1).fork("test"),
+    );
 
     expect(climate.terrainDefId).toEqual(before.terrainDefId);
     expect(resources.resourceDefId).toEqual(before.resourceDefId);

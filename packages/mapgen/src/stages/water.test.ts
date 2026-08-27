@@ -227,7 +227,12 @@ describe("generateWater — polar ice, wraparound", () => {
       isLand[idx] = false;
       terrainDefId[idx] = TERRAIN.ocean;
     }
-    const landmass: LandmassResult = { width, height, elevation: new Array<number>(total).fill(0.5), isLand };
+    const landmass: LandmassResult = {
+      width,
+      height,
+      elevation: new Array<number>(total).fill(0.5),
+      isLand,
+    };
     const climate: ClimateResult = { terrainDefId };
 
     const result = generateWater(makeParams({ mapType: "islands" }), landmass, climate, CTX);

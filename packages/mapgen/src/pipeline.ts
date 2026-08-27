@@ -111,7 +111,9 @@ export function generateMap(
     throw new Error(`Unknown mapSize: "${String(params.mapSize)}"`);
   }
 
-  return generateWithValidation(params, (attemptParams) => runStages(attemptParams, onProgress ?? (() => {})));
+  return generateWithValidation(params, (attemptParams) =>
+    runStages(attemptParams, onProgress ?? (() => {})),
+  );
 }
 
 /** Runs the landmass -> climate -> water -> rivers -> features -> resources -> start-positions chain once. */

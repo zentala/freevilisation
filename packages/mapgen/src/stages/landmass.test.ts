@@ -75,7 +75,10 @@ describe("generateLandmass", () => {
       ...Array.from({ length: bandSize }, (_, i) => height - 1 - i),
     ];
     const equator = Math.floor((height - 1) / 2);
-    const equatorRows = Array.from({ length: bandSize }, (_, i) => equator - Math.floor(bandSize / 2) + i);
+    const equatorRows = Array.from(
+      { length: bandSize },
+      (_, i) => equator - Math.floor(bandSize / 2) + i,
+    );
 
     expect(bandDensity(poleRows)).toBeLessThan(bandDensity(equatorRows));
   });

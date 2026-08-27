@@ -86,7 +86,12 @@ describe("mapgen — statistical bounds", () => {
     for (const numPlayers of PLAYER_COUNTS) {
       it(`${numPlayers} players: minimum pairwise start distance is at least ${MIN_START_DISTANCE_FLOOR} in every seed of a ${START_POSITION_BATCH_SIZE}-seed batch`, () => {
         for (let seed = 0; seed < START_POSITION_BATCH_SIZE; seed++) {
-          const result = generateMap({ seed, mapType: "continents", mapSize: SAMPLE_MAP_SIZE, numPlayers });
+          const result = generateMap({
+            seed,
+            mapType: "continents",
+            mapSize: SAMPLE_MAP_SIZE,
+            numPlayers,
+          });
           const wrap = { isWraparoundX: result.isWraparoundX, width: result.width };
           const positions = result.startPositions;
           let minDistance = Infinity;

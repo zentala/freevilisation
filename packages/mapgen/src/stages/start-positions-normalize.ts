@@ -44,7 +44,10 @@ function neighbourInfos(
 }
 
 /** Among untouched land neighbours below the floor, the worst one, ties broken by `prng`. */
-function pickWorstNeighbour(infos: readonly NeighbourInfo[], prng: Prng): NeighbourInfo | undefined {
+function pickWorstNeighbour(
+  infos: readonly NeighbourInfo[],
+  prng: Prng,
+): NeighbourInfo | undefined {
   const eligible = infos.filter((n) => n.isLand && n.quality < MIN_GOOD_QUALITY);
   if (eligible.length === 0) return undefined;
   const worst = Math.min(...eligible.map((n) => n.quality));
@@ -53,11 +56,7 @@ function pickWorstNeighbour(infos: readonly NeighbourInfo[], prng: Prng): Neighb
 }
 
 /** Raises the worst-scoring land neighbours to `UPGRADE_TERRAIN` until the floor is met. */
-function normalizeTerrainFloor(
-  infos: NeighbourInfo[],
-  climate: ClimateResult,
-  prng: Prng,
-): void {
+function normalizeTerrainFloor(infos: NeighbourInfo[], climate: ClimateResult, prng: Prng): void {
   let goodCount = infos.filter((n) => n.quality >= MIN_GOOD_QUALITY).length;
   while (goodCount < MIN_GOOD_NEIGHBOURS) {
     const target = pickWorstNeighbour(infos, prng);

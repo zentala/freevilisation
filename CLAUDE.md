@@ -36,7 +36,12 @@ offsets, distance or ring logic anywhere else, in any package.
 
 ```ts
 // wrong — this is a square grid wearing hex coordinate names
-const NEIGHBORS = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+const NEIGHBORS = [
+  [0, -1],
+  [0, 1],
+  [-1, 0],
+  [1, 0],
+];
 const dist = Math.max(Math.abs(a.q - b.q), Math.abs(a.r - b.r));
 
 // right

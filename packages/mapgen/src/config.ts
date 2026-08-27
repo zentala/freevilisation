@@ -121,6 +121,9 @@ export type WorldTopology = "cylinder" | "flat";
 export const DEFAULT_WORLD_TOPOLOGY: WorldTopology = "cylinder";
 
 /** Builds the `WrapContext` every stage should use for a given map width. */
-export function wrapContextFor(width: number, topology: WorldTopology = DEFAULT_WORLD_TOPOLOGY): WrapContext {
+export function wrapContextFor(
+  width: number,
+  topology: WorldTopology = DEFAULT_WORLD_TOPOLOGY,
+): WrapContext {
   return { isWraparoundX: topology === "cylinder", width };
 }

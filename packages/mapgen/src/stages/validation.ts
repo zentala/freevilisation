@@ -2,7 +2,11 @@ import { createPrng, type WrapContext } from "@freevilisation/engine";
 import type { MapGenParams, MapGenResult } from "../pipeline.js";
 import { MAP_TYPE_PRESETS } from "../config.js";
 import { TERRAIN } from "./climate.js";
-import { floodComponents as sharedFloodComponents, type FloodGrid, type FloodResult } from "../flood.js";
+import {
+  floodComponents as sharedFloodComponents,
+  type FloodGrid,
+  type FloodResult,
+} from "../flood.js";
 
 /**
  * Connected-component tile count below which a landmass is deleted rather
@@ -68,11 +72,23 @@ function repairTinyIslands(result: MapGenResult, flood: FloodResult): RepairedMa
     repaired = true;
   }
 
-  return { isLand, terrainDefId, featureDefId, resourceDefId, riverEdgeDir0, riverEdgeDir1, riverEdgeDir2, repaired };
+  return {
+    isLand,
+    terrainDefId,
+    featureDefId,
+    resourceDefId,
+    riverEdgeDir0,
+    riverEdgeDir1,
+    riverEdgeDir2,
+    repaired,
+  };
 }
 
 /** Reports a start position whose landmass the repair pass just removed, if any. */
-function findStrandedStart(result: MapGenResult, isLand: readonly boolean[]): ValidationFailure | undefined {
+function findStrandedStart(
+  result: MapGenResult,
+  isLand: readonly boolean[],
+): ValidationFailure | undefined {
   for (const start of result.startPositions) {
     const idx = start.r * result.width + start.q;
     if (!isLand[idx]) {
@@ -86,7 +102,10 @@ function findStrandedStart(result: MapGenResult, isLand: readonly boolean[]): Va
 }
 
 /** Rejects a land/water ratio outside `LAND_FRACTION_TOLERANCE` of the map type's target. */
-function checkLandFraction(result: MapGenResult, isLand: readonly boolean[]): ValidationFailure | undefined {
+function checkLandFraction(
+  result: MapGenResult,
+  isLand: readonly boolean[],
+): ValidationFailure | undefined {
   const landTiles = isLand.filter(Boolean).length;
   const landFraction = landTiles / isLand.length;
   const targetLandFraction = MAP_TYPE_PRESETS[result.mapType].targetLandFraction;
@@ -98,7 +117,11 @@ function checkLandFraction(result: MapGenResult, isLand: readonly boolean[]): Va
 }
 
 /** Rejects a `pangaea` map whose land is split across more than one large landmass. */
-function checkPangaeaShape(result: MapGenResult, isLand: readonly boolean[], flood: FloodResult): ValidationFailure | undefined {
+function checkPangaeaShape(
+  result: MapGenResult,
+  isLand: readonly boolean[],
+  flood: FloodResult,
+): ValidationFailure | undefined {
   if (result.mapType !== "pangaea") return undefined;
   const landTiles = isLand.filter(Boolean).length;
   if (landTiles === 0) return undefined;
