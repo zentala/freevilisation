@@ -6,6 +6,8 @@ A browser-based, turn-based 4X strategy game in TypeScript. AGPL-3.0.
 
 Early scaffold — no gameplay yet.
 
+<!-- verify/commitlint-gate scratch marker -->
+
 ## Repo layout
 
 ```
