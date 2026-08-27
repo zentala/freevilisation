@@ -4,6 +4,7 @@ import { type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { axialToWorld } from "./hexMath";
 import { pickHex, type EntityLookup, type PickResult } from "./picking";
+import { playerColorNumber } from "./playerColors";
 
 const HIGHLIGHT_RADIUS = 0.94;
 const HIGHLIGHT_HEIGHT = 0.035;
@@ -14,6 +15,8 @@ export type SelectionOverlayProps = {
   readonly entityStore?: EntityLookup;
   readonly hovered?: PickResult | null;
   readonly selected?: PickResult | null;
+  /** Civilization color for the selected owner's highlight ring. */
+  readonly selectedPlayerColor?: string;
   readonly onHover?: (result: PickResult | null) => void;
   readonly onSelect?: (result: PickResult | null) => void;
 };
@@ -54,6 +57,7 @@ export function SelectionOverlay({
   entityStore = EMPTY_STORE,
   hovered: controlledHovered,
   selected: controlledSelected,
+  selectedPlayerColor,
   onHover,
   onSelect,
 }: SelectionOverlayProps) {
@@ -89,7 +93,13 @@ export function SelectionOverlay({
         <planeGeometry args={[INPUT_PLANE_SIZE, INPUT_PLANE_SIZE]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
-      {currentSelected && <Highlight result={currentSelected} color={0x4ade80} height={0.08} />}
+      {currentSelected && (
+        <Highlight
+          result={currentSelected}
+          color={playerColorNumber(selectedPlayerColor ? { colorHex: selectedPlayerColor } : undefined)}
+          height={0.08}
+        />
+      )}
       {currentHovered && <Highlight result={currentHovered} color={0xfacc15} height={0.13} />}
     </group>
   );

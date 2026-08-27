@@ -23,6 +23,8 @@ export interface TechDef {
 // TODO(E26): replace with packages/content's validated def types
 export interface CivDef {
   id: DefId<"civ">;
+  /** Primary color used to identify this civilization in the renderer. */
+  readonly colorHex?: string;
 }
 
 export class Registry {
