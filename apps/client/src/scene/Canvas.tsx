@@ -2,6 +2,7 @@ import { Canvas as R3FCanvas } from "@react-three/fiber";
 import type { ReactNode } from "react";
 import * as THREE from "three";
 import { CameraRig } from "./CameraRig";
+import { SelectionOverlay } from "./SelectionOverlay";
 
 type SceneShellProps = {
   children?: ReactNode;
@@ -12,10 +13,7 @@ export function TerrainChunks({ children }: SceneShellProps) {
   return <>{children}</>;
 }
 
-/** Empty scene slot for hover and selection visuals. */
-export function SelectionOverlay({ children }: SceneShellProps) {
-  return <>{children}</>;
-}
+export { SelectionOverlay } from "./SelectionOverlay";
 
 /**
  * Root R3F scene with renderer settings shared by every scene composition.
