@@ -68,6 +68,16 @@ describe("validate", () => {
     expect(state.turn).toBe(turnBefore);
   });
 
+  it("rejects EndTurn with a specific validation reason when no players exist", () => {
+    const state = makeBaseState();
+    state.playerOrder = [];
+    const result = validate(state, { kind: "EndTurn", playerId: P1 });
+    expect(result).toEqual({
+      code: "illegal",
+      message: "Cannot end a turn without players",
+    });
+  });
+
   it("rejects unit owned by another player", () => {
     const state = makeBaseState();
     const result = validate(state, {

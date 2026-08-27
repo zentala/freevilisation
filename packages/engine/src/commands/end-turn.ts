@@ -1,8 +1,27 @@
 import type { GameState } from "../game-state.js";
-import type { Command, CommandResult, GameEvent } from "./types.js";
+import type { Command, CommandRejection, CommandResult, GameEvent } from "./types.js";
 import { refreshUnitMoves, type TurnSystem } from "../systems/refresh-unit-moves.js";
 
 const TURN_SYSTEMS: TurnSystem[] = [refreshUnitMoves];
+
+/** Validates the command-specific preconditions for ending a turn. */
+export function validateEndTurn(
+  state: GameState,
+  command: Command & { kind: "EndTurn" },
+): CommandRejection | null {
+  if (state.playerOrder.length === 0) {
+    return { code: "illegal", message: "Cannot end a turn without players" };
+  }
+
+  if (!state.playerOrder.includes(command.playerId)) {
+    return {
+      code: "unknown_entity",
+      message: `Player is not in the turn order: ${command.playerId}`,
+    };
+  }
+
+  return null;
+}
 
 export function handleEndTurn(
   state: GameState,

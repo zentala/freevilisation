@@ -2,7 +2,7 @@ import type { GameState } from "../game-state.js";
 import type { Command, CommandResult, CommandRejection } from "./types.js";
 import { validateMoveUnit, handleMoveUnit } from "./move-unit.js";
 import { validateFoundCity, handleFoundCity } from "./found-city.js";
-import { handleEndTurn } from "./end-turn.js";
+import { handleEndTurn, validateEndTurn } from "./end-turn.js";
 
 const VALID_KINDS = new Set(["MoveUnit", "FoundCity", "EndTurn"]);
 
@@ -19,15 +19,15 @@ export function validate(state: GameState, command: Command): CommandRejection |
     return { code: "not_your_turn", message: "It is not your turn" };
   }
 
+  if (command.kind === "EndTurn") {
+    return validateEndTurn(state, command);
+  }
+
   if (!state.playerOrder.includes(command.playerId)) {
     return {
       code: "unknown_entity",
       message: `Player is not in the turn order: ${command.playerId}`,
     };
-  }
-
-  if (command.kind === "EndTurn") {
-    return null;
   }
 
   const unit = state.entities.units[command.unitId];
