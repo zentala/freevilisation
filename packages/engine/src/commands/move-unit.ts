@@ -7,6 +7,16 @@ import { fromHexKey, toHexKey } from "../hex/coords.js";
 import { neighbors, type WrapContext } from "../hex/hex-math.js";
 import { toWrapContext } from "../hex/game-map.js";
 import { stepCost } from "../movement/step.js";
+import { Tile } from "../entities/Tile.js";
+
+function withOccupants(tile: Tile, occupantUnitIds: UnitId[]): Tile {
+  return new Tile(
+    tile.id, tile.createdTurn, tile.hexKey, tile.terrainDefId, tile.featureDefId,
+    tile.resourceDefId, tile.improvementDefId, tile.riverEdge0, tile.riverEdge1,
+    tile.riverEdge2, tile.ownerCity, tile.ownerPlayer, tile.workedByCity,
+    occupantUnitIds,
+  );
+}
 
 /** Returns true if `to` is one of the six hex neighbours of `from`. */
 function isAdjacent(from: HexKey, to: HexKey, wrap: WrapContext): boolean {
@@ -98,6 +108,21 @@ export function handleMoveUnit(
   );
 
   const nextUnits = { ...state.entities.units, [command.unitId]: movedUnit };
+  const nextTiles = { ...state.map.tiles };
+  if (to !== prevCoord) {
+    const source = state.map.tiles[prevCoord]!;
+    const destination = state.map.tiles[to]!;
+    nextTiles[prevCoord] = withOccupants(
+      source,
+      source.occupantUnitIds.filter((id) => id !== command.unitId),
+    );
+    nextTiles[to] = withOccupants(
+      destination,
+      destination.occupantUnitIds.includes(command.unitId)
+        ? destination.occupantUnitIds
+        : [...destination.occupantUnitIds, command.unitId],
+    );
+  }
   const events: GameEvent[] = [
     {
       kind: "UnitMoved",
@@ -110,7 +135,11 @@ export function handleMoveUnit(
 
   return {
     ok: true,
-    state: { ...state, entities: { ...state.entities, units: nextUnits } },
+    state: {
+      ...state,
+      map: { ...state.map, tiles: nextTiles },
+      entities: { ...state.entities, units: nextUnits },
+    },
     events,
   };
 }

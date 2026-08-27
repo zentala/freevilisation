@@ -35,6 +35,24 @@ describe("applyCommand — MoveUnit", () => {
     expect(state.entities.units[U1]!.coord).toBe("0,0");
   });
 
+  it("moves the unit id between tile occupant lists", () => {
+    const state = makeBaseState();
+    state.map.tiles["0,0" as HexKey]!.occupantUnitIds = [U1];
+
+    const result = applyCommand(state, {
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["1,0" as HexKey],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.state.map.tiles["0,0" as HexKey]!.occupantUnitIds).toEqual([]);
+    expect(result.state.map.tiles["1,0" as HexKey]!.occupantUnitIds).toEqual([U1]);
+    expect(state.map.tiles["0,0" as HexKey]!.occupantUnitIds).toEqual([U1]);
+  });
+
   it("returns a new state object", () => {
     const state = makeBaseState();
     const result = applyCommand(state, {
