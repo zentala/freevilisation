@@ -11,22 +11,27 @@ export interface Tween {
 
 export interface AnimationSystemOptions {
   readonly durationMs?: number;
+  readonly damageFlashDurationMs?: number;
   readonly now?: () => number;
 }
 
 export const DEFAULT_MOVE_DURATION_MS = 300;
+export const DEFAULT_DAMAGE_FLASH_DURATION_MS = 180;
 
 /** Event-driven transform tween queue consumed by entity renderers. */
 export class AnimationSystem {
   readonly #tweens = new Map<EntityId, Tween[]>();
   readonly #now: () => number;
   readonly #durationMs: number;
+  readonly #damageFlashDurationMs: number;
+  readonly #flashes = new Map<EntityId, number>();
   readonly #unsubscribe: () => void;
   #time = 0;
 
   constructor(eventBus: EventBus, options: AnimationSystemOptions = {}) {
     this.#now = options.now ?? (() => performance.now());
     this.#durationMs = options.durationMs ?? DEFAULT_MOVE_DURATION_MS;
+    this.#damageFlashDurationMs = options.damageFlashDurationMs ?? DEFAULT_DAMAGE_FLASH_DURATION_MS;
     this.#time = this.#now();
     this.#unsubscribe = eventBus.on((event) => this.#handleEvent(event));
   }
@@ -35,6 +40,18 @@ export class AnimationSystem {
   getCurrentTransform(id: EntityId): Vector3 | undefined {
     this.#time = this.#now();
     return this.#transformAt(id, this.#time);
+  }
+
+  /** Returns a bounded white-flash intensity for a recently damaged entity. */
+  getDamageFlashIntensity(id: EntityId): number {
+    const startedAt = this.#flashes.get(id);
+    if (startedAt === undefined) return 0;
+    const elapsed = this.#now() - startedAt;
+    if (elapsed >= this.#damageFlashDurationMs) {
+      this.#flashes.delete(id);
+      return 0;
+    }
+    return 1 - Math.max(0, elapsed) / this.#damageFlashDurationMs;
   }
 
   /** Advances the animation clock, useful for render loops and deterministic tests. */
@@ -47,6 +64,7 @@ export class AnimationSystem {
   dispose(): void {
     this.#unsubscribe();
     this.#tweens.clear();
+    this.#flashes.clear();
   }
 
   /** Queues a fixed-duration slide between two axial tile centres. */
@@ -61,6 +79,10 @@ export class AnimationSystem {
   }
 
   #handleEvent(event: GameEvent): void {
+    if (event.kind === "UnitAttacked") {
+      this.#flashes.set(event.targetId, this.#time);
+      return;
+    }
     if (event.kind !== "UnitMoved") return;
     this.queueMove(event.unitId, event.from, event.to);
   }
