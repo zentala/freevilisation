@@ -39,14 +39,45 @@ describe("generateLandmass", () => {
     });
   }
 
-  it("isLand[i] === (elevation[i] >= landThreshold) for every index", () => {
-    const params = makeParams({ mapType: "continents" });
+  const LAND_FRACTION_TOLERANCE = 0.02;
+
+  for (const mapType of MAP_TYPES) {
+    it(`${mapType}: land fraction is within ${LAND_FRACTION_TOLERANCE * 100}% of targetLandFraction`, () => {
+      const params = makeParams({ mapType, mapSize: "standard" });
+      const prng = createPrng(params.seed).fork("landmass");
+      const result = generateLandmass(params, { prng, onProgress: () => {} });
+      const landCount = result.isLand.filter(Boolean).length;
+      const actualFraction = landCount / result.isLand.length;
+      const target = MAP_TYPE_PRESETS[mapType]!.targetLandFraction;
+      expect(Math.abs(actualFraction - target)).toBeLessThanOrEqual(LAND_FRACTION_TOLERANCE);
+    });
+  }
+
+  it("land density near the poles is lower than at the equator (latitude bias)", () => {
+    const params = makeParams({ mapType: "continents", mapSize: "standard" });
     const prng = createPrng(params.seed).fork("landmass");
     const result = generateLandmass(params, { prng, onProgress: () => {} });
-    const threshold = MAP_TYPE_PRESETS.continents!.landThreshold;
-    for (let i = 0; i < result.elevation.length; i++) {
-      expect(result.isLand[i]).toBe(result.elevation[i]! >= threshold);
-    }
+    const { width, height } = MAP_SIZES.standard!;
+
+    const bandDensity = (rows: readonly number[]): number => {
+      let land = 0;
+      for (const r of rows) {
+        for (let q = 0; q < width; q++) {
+          if (result.isLand[r * width + q]) land++;
+        }
+      }
+      return land / (rows.length * width);
+    };
+
+    const bandSize = 5;
+    const poleRows = [
+      ...Array.from({ length: bandSize }, (_, i) => i),
+      ...Array.from({ length: bandSize }, (_, i) => height - 1 - i),
+    ];
+    const equator = Math.floor((height - 1) / 2);
+    const equatorRows = Array.from({ length: bandSize }, (_, i) => equator - Math.floor(bandSize / 2) + i);
+
+    expect(bandDensity(poleRows)).toBeLessThan(bandDensity(equatorRows));
   });
 
   it("index convention: width=56 tiny map, tile at q=3,r=2 is at index 115", () => {

@@ -37,9 +37,9 @@ describe("MAP_TYPE_PRESETS", () => {
     }
   });
 
-  it("landThreshold is in (0, 1) for every preset", () => {
+  it("targetLandFraction is in (0, 1) for every preset", () => {
     for (const key of TYPE_KEYS) {
-      const t = MAP_TYPE_PRESETS[key]!.landThreshold;
+      const t = MAP_TYPE_PRESETS[key]!.targetLandFraction;
       expect(t).toBeGreaterThan(0);
       expect(t).toBeLessThan(1);
     }

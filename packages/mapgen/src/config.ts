@@ -26,8 +26,14 @@ export interface MapTypePreset {
   readonly persistence: number;
   /** Frequency multiplier per octave. */
   readonly lacunarity: number;
-  /** Elevation threshold above which a tile is land. */
-  readonly landThreshold: number;
+  /**
+   * Target fraction of tiles that should be land, in (0,1). The landmass
+   * stage derives its elevation cut point from this at generation time (the
+   * value at the `1 - targetLandFraction` percentile of the elevation
+   * distribution), rather than using a fixed threshold — so the actual land
+   * share tracks the target regardless of seed.
+   */
+  readonly targetLandFraction: number;
 }
 
 /** Per-map-type noise presets. */
@@ -40,7 +46,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     octaves: 4,
     persistence: 0.5,
     lacunarity: 2,
-    landThreshold: 0.52,
+    targetLandFraction: 0.42,
   },
   pangaea: {
     continentFrequency: 1,
@@ -50,7 +56,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     octaves: 4,
     persistence: 0.5,
     lacunarity: 2,
-    landThreshold: 0.45,
+    targetLandFraction: 0.55,
   },
   archipelago: {
     continentFrequency: 8,
@@ -60,7 +66,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     octaves: 4,
     persistence: 0.5,
     lacunarity: 2,
-    landThreshold: 0.58,
+    targetLandFraction: 0.3,
   },
   islands: {
     continentFrequency: 16,
@@ -70,7 +76,7 @@ export const MAP_TYPE_PRESETS: Record<MapType, MapTypePreset> = {
     octaves: 3,
     persistence: 0.5,
     lacunarity: 2,
-    landThreshold: 0.64,
+    targetLandFraction: 0.18,
   },
 };
 
