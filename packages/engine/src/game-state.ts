@@ -26,6 +26,7 @@ export interface GameSettings {
   difficulty: DefId<"difficulty">;
   turnTimerSeconds: number | null;
   simultaneousTurns: boolean;
+  autosaveInterval?: number | null;
 }
 
 export type GamePhase = "setup" | "playing" | "turn_resolution" | "game_over";

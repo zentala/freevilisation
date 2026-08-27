@@ -19,7 +19,8 @@ export type Command =
   | { kind: "FortifyUnit"; playerId: PlayerId; unitId: UnitId }
   | { kind: "SleepUnit"; playerId: PlayerId; unitId: UnitId }
   | { kind: "FoundCity"; playerId: PlayerId; unitId: UnitId; name: string }
-  | { kind: "EndTurn"; playerId: PlayerId };
+  | { kind: "EndTurn"; playerId: PlayerId }
+  | { kind: "SaveGame"; playerId: PlayerId; label: string };
 
 export type GameEvent =
   | { kind: "UnitMoved"; unitId: UnitId; from: HexKey; to: HexKey; movesRemaining: number }

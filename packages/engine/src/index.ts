@@ -81,6 +81,7 @@ export type { ResearchResult, ResearchRules } from "./turn/research.js";
 export type { CurrentResearch } from "./entities/Player.js";
 export { resolveVictory } from "./turn/victory.js";
 export type { VictoryChecker, VictoryResolution, VictoryResult } from "./turn/victory.js";
+export { autosaveCommand } from "./turn/autosave.js";
 
 export type { AxialCoord } from "./hex/coords.js";
 export {

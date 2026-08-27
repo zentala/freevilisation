@@ -17,6 +17,7 @@ const VALID_KINDS = new Set([
   "SleepUnit",
   "FoundCity",
   "EndTurn",
+  "SaveGame",
 ]);
 
 export function validate(state: GameState, command: Command): CommandRejection | null {
@@ -38,6 +39,10 @@ export function validate(state: GameState, command: Command): CommandRejection |
       return { code: "illegal", message: "Player already submitted EndTurn" };
     }
     return validateEndTurn(state, command);
+  }
+
+  if (command.kind === "SaveGame") {
+    return null;
   }
 
   if (!state.playerOrder.includes(command.playerId)) {
@@ -98,5 +103,7 @@ export function applyCommand(state: GameState, command: Command): CommandResult 
       return handleSleepUnit(state, command);
     case "EndTurn":
       return handleEndTurn(state, command);
+    case "SaveGame":
+      return { ok: true, state, events: [] };
   }
 }
