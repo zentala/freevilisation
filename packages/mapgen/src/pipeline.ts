@@ -12,6 +12,7 @@ import { generateFeatures } from "./stages/features.js";
 import { generateResources } from "./stages/resources.js";
 import { generateStartPositions } from "./stages/start-positions.js";
 import type { StartPosition } from "./stages/start-positions.js";
+import { generateWithValidation } from "./stages/validation.js";
 import { MAP_SIZES, MAP_TYPE_PRESETS, wrapContextFor } from "./config.js";
 
 /** The four supported map shapes. */
@@ -87,15 +88,15 @@ export interface MapGenResult {
  * Generate a complete map from parameters.
  *
  * Synchronous — the Web Worker wrapping is the host's responsibility (E32).
- * Runs landmass, climate, rivers, then features; later stages will be
- * inserted here.
+ * Runs landmass, climate, rivers, features, resources and start positions,
+ * then a validation pass (`generateWithValidation`) that repairs undersized
+ * landmasses in place and bounded-rerolls with a forked seed for failures
+ * it cannot repair locally (a stranded start, a shape mismatch).
  */
 export function generateMap(
   params: MapGenParams,
   onProgress?: (pct: number) => void,
 ): MapGenResult {
-  const progress = onProgress ?? (() => {});
-
   if (!Object.hasOwn(MAP_TYPE_PRESETS, params.mapType)) {
     throw new Error(`Unknown mapType: "${String(params.mapType)}"`);
   }
@@ -103,6 +104,11 @@ export function generateMap(
     throw new Error(`Unknown mapSize: "${String(params.mapSize)}"`);
   }
 
+  return generateWithValidation(params, (attemptParams) => runStages(attemptParams, onProgress ?? (() => {})));
+}
+
+/** Runs the landmass -> climate -> rivers -> features -> resources -> start-positions chain once. */
+function runStages(params: MapGenParams, progress: (pct: number) => void): MapGenResult {
   const root = createPrng(params.seed);
   const landmassPrng = root.fork("landmass");
 
