@@ -56,7 +56,7 @@ export type { EventListener } from "./event-bus.js";
 export { GameSession } from "./game-session.js";
 
 export { refreshUnitMoves } from "./systems/refresh-unit-moves.js";
-export type { TurnSystem } from "./systems/refresh-unit-moves.js";
+export type { MovesMaxModifier, TurnSystem } from "./systems/refresh-unit-moves.js";
 
 export { replay, assertDeterministic } from "./testing/determinism-harness.js";
 export type { DeterminismRun } from "./testing/determinism-harness.js";
@@ -75,6 +75,9 @@ export type {
   ProductionCompletion,
   ProductionKind,
 } from "./turn/growth-production.js";
+export { runResearch } from "./turn/research.js";
+export type { ResearchResult, ResearchRules } from "./turn/research.js";
+export type { CurrentResearch } from "./entities/Player.js";
 
 export type { AxialCoord } from "./hex/coords.js";
 export { cubeS, toHexKey, fromHexKey, coordsEqual } from "./hex/coords.js";

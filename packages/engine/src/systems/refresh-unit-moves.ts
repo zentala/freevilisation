@@ -4,6 +4,8 @@ import type { GameEvent } from "../commands/types.js";
 import { Unit } from "../entities/Unit.js";
 import { stepCost } from "../movement/step.js";
 
+export type MovesMaxModifier = (state: GameState, unit: Unit) => number;
+
 export type TurnSystem = (
   state: GameState,
   playerId: PlayerId,
@@ -15,6 +17,7 @@ export type TurnSystem = (
 export function refreshUnitMoves(
   state: GameState,
   playerId: PlayerId,
+  movesMaxModifier: MovesMaxModifier = (_state, unit) => unit.movesMax,
 ): {
   state: GameState;
   events: GameEvent[];
@@ -31,7 +34,11 @@ export function refreshUnitMoves(
   const events: GameEvent[] = [];
   for (const [id, unit] of unitEntries) {
     let coord = unit.coord;
-    let movesLeft = unit.movesMax;
+    const movesMax = movesMaxModifier(state, unit);
+    if (!Number.isFinite(movesMax) || movesMax < 0) {
+      throw new Error("movesMax modifier must return a finite non-negative number");
+    }
+    let movesLeft = movesMax;
     let remaining = [...unit.moveOrder];
     const eventsForUnit: GameEvent[] = [];
     while (remaining.length > 0) {
@@ -57,7 +64,7 @@ export function refreshUnitMoves(
       coord,
       unit.hp,
       movesLeft,
-      unit.movesMax,
+      movesMax,
       unit.promotions,
       unit.experience,
       unit.fortifiedTurns,
