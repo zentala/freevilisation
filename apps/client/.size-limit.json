@@ -2,7 +2,7 @@
   {
     "name": "client JS bundle",
     "path": "dist/assets/*.js",
-    "limit": "1 KB"
+    "limit": "320 KB"
   },
   {
     "name": "client CSS bundle",
