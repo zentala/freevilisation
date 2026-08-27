@@ -1,7 +1,8 @@
 import type { GameState } from "../game-state.js";
-import type { PlayerId } from "../ids.js";
+import type { PlayerId, UnitId } from "../ids.js";
 import type { GameEvent } from "../commands/types.js";
 import { Unit } from "../entities/Unit.js";
+import { stepCost } from "../movement/step.js";
 
 export type TurnSystem = (
   state: GameState,
@@ -27,26 +28,46 @@ export function refreshUnitMoves(
   }
 
   const nextUnits = { ...state.entities.units };
+  const events: GameEvent[] = [];
   for (const [id, unit] of unitEntries) {
+    let coord = unit.coord;
+    let movesLeft = unit.movesMax;
+    let remaining = [...unit.moveOrder];
+    const eventsForUnit: GameEvent[] = [];
+    while (remaining.length > 0) {
+      const cost = stepCost(state, unit.id as UnitId, coord, remaining[0]!);
+      if (!Number.isFinite(cost) || cost > movesLeft) break;
+      const next = remaining.shift()!;
+      eventsForUnit.push({
+        kind: "UnitMoved",
+        unitId: unit.id as UnitId,
+        from: coord,
+        to: next,
+        movesRemaining: movesLeft - cost,
+      });
+      coord = next;
+      movesLeft -= cost;
+    }
+    events.push(...eventsForUnit);
     nextUnits[id as keyof typeof nextUnits] = new Unit(
       unit.id,
       unit.createdTurn,
       unit.defId,
       unit.ownerId,
-      unit.coord,
+      coord,
       unit.hp,
-      unit.movesMax,
+      movesLeft,
       unit.movesMax,
       unit.promotions,
       unit.experience,
       unit.fortifiedTurns,
       unit.isEmbarked,
-      unit.moveOrder,
+      remaining,
     );
   }
 
-  return {
+    return {
     state: { ...state, entities: { ...state.entities, units: nextUnits } },
-    events: [],
+    events,
   };
 }
