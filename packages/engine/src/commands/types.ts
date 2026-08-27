@@ -1,8 +1,22 @@
-import type { PlayerId, UnitId, CityId, HexKey } from "../ids.js";
+import type {
+  PlayerId,
+  UnitId,
+  CityId,
+  HexKey,
+  ImprovementDefId,
+} from "../ids.js";
 import type { GameState } from "../game-state.js";
 
 export type Command =
   | { kind: "MoveUnit"; playerId: PlayerId; unitId: UnitId; path: HexKey[] }
+  | {
+      kind: "BuildImprovement";
+      playerId: PlayerId;
+      unitId: UnitId;
+      improvementDefId: ImprovementDefId;
+    }
+  | { kind: "FortifyUnit"; playerId: PlayerId; unitId: UnitId }
+  | { kind: "SleepUnit"; playerId: PlayerId; unitId: UnitId }
   | { kind: "FoundCity"; playerId: PlayerId; unitId: UnitId; name: string }
   | { kind: "EndTurn"; playerId: PlayerId };
 
