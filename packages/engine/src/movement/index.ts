@@ -9,3 +9,4 @@ export type {
 } from "./movement-points.js";
 
 export { findPath } from "./pathfinding.js";
+export { canEnter, stepCost } from "./step.js";

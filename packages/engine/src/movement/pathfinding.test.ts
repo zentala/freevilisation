@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { EntityId, HexKey, TerrainDefId, UnitId } from "../ids.js";
+import type { EntityId, HexKey, ImprovementDefId, TerrainDefId, UnitId } from "../ids.js";
 import { Tile } from "../entities/Tile.js";
 import { buildGameMap } from "../hex/game-map.js";
 import { toHexKey } from "../hex/coords.js";
 import { createInitialGameState } from "../game-state.js";
 import { Registry } from "../registry.js";
 import { findPath } from "./pathfinding.js";
+import { canEnter, stepCost } from "./step.js";
 
 function makeState() {
   const registry = Registry.load({ units: [], buildings: [], terrains: [], techs: [], civs: [] });
@@ -22,7 +23,7 @@ function makeState() {
     version: "1.0.0",
     contentHash: "test",
   });
-  state.map = buildGameMap(2, 2, false, (coord) => new Tile(
+  state.map = buildGameMap(3, 3, false, (coord) => new Tile(
     "tile_0" as EntityId,
     0,
     toHexKey(coord),
@@ -76,12 +77,11 @@ describe("findPath interface", () => {
     expensiveTile.movementCost = 2;
     expensiveTile.movementCostAdd = 3;
 
-    // The direct route costs 2 + 3 + 1. The detour costs four base points.
+    // The direct route costs 2 + 3 + 1. The detour costs three base points.
     // Either component alone would incorrectly make the direct route cheaper.
     expect(findPath(state, "0,1" as HexKey, "2,1" as HexKey)).toEqual([
-      "0,0",
-      "1,0",
-      "2,0",
+      "0,2",
+      "1,2",
       "2,1",
     ]);
   });
@@ -100,5 +100,25 @@ describe("findPath interface", () => {
     const state = makeState();
     (state.map as unknown as { isWraparoundX: boolean }).isWraparoundX = true;
     expect(findPath(state, "0,0" as HexKey, "1,0" as HexKey)).toEqual(["1,0"]);
+  });
+
+  it("exposes step legality and composes road before river modifiers", () => {
+    const state = makeState();
+    state.map.tiles["0,0" as HexKey]!.riverEdge0 = true;
+    state.map.tiles["1,0" as HexKey]!.improvementDefId = "improvement_road" as ImprovementDefId;
+
+    expect(canEnter(state, "unit_1" as UnitId, "0,0" as HexKey, "1,0" as HexKey)).toBe(true);
+    // (terrain 1 × road 0.5) + river crossing 1.
+    expect(stepCost(state, "unit_1" as UnitId, "0,0" as HexKey, "1,0" as HexKey)).toBe(1.5);
+  });
+
+  it("rejects non-adjacent and impassable steps", () => {
+    const state = makeState();
+    state.map.tiles["1,0" as HexKey]!.terrainDefId = "terrain_mountain" as TerrainDefId;
+
+    expect(canEnter(state, "unit_1" as UnitId, "0,0" as HexKey, "2,1" as HexKey)).toBe(false);
+    expect(stepCost(state, "unit_1" as UnitId, "0,0" as HexKey, "1,0" as HexKey)).toBe(
+      Number.POSITIVE_INFINITY,
+    );
   });
 });

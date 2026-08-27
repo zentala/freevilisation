@@ -1,35 +1,13 @@
 import type { GameState } from "../game-state.js";
-import type { Tile } from "../entities/Tile.js";
 import type { HexKey } from "../ids.js";
 import { distance } from "../hex/hex-math.js";
 import { fromHexKey, toHexKey } from "../hex/coords.js";
 import { neighborsOf } from "../hex/graph.js";
 import { toWrapContext } from "../hex/game-map.js";
-
-type MovementTile = Tile & { movementCost?: number; movementCostAdd?: number; isImpassable?: boolean };
-
-const DEFAULT_COSTS: Record<string, number> = {
-  grassland: 1, plains: 1, desert: 1, tundra: 1, snow: 1,
-  coast: 1, ocean: 1, lake: 1, hills: 2,
-};
+import { stepCost } from "./step.js";
+import type { UnitId } from "../ids.js";
 
 interface SearchNode { readonly key: HexKey; readonly cost: number; readonly estimate: number }
-
-function terrainName(tile: Tile): string {
-  return (tile.terrainDefId as string).replace(/^terrain_/, "").toLowerCase();
-}
-
-function costToEnter(tile: Tile): number {
-  const candidate = tile as MovementTile;
-  const name = terrainName(tile);
-  if (candidate.isImpassable === true || name === "mountain" || name === "mountains") {
-    return Number.POSITIVE_INFINITY;
-  }
-  const base = candidate.movementCost ?? DEFAULT_COSTS[name] ?? 1;
-  const add = candidate.movementCostAdd ?? 0;
-  return Number.isFinite(base) && Number.isFinite(add) && base + add > 0
-    ? base + add : Number.POSITIVE_INFINITY;
-}
 
 function compareNodes(a: SearchNode, b: SearchNode): number {
   return a.estimate - b.estimate || a.cost - b.cost || (a.key as string).localeCompare(b.key as string);
@@ -55,7 +33,7 @@ function reconstruct(cameFrom: Map<HexKey, HexKey>, destination: HexKey): HexKey
 export function findPath(state: GameState, from: HexKey, to: HexKey): HexKey[] | null {
   if (!state.map.tiles[from] || !state.map.tiles[to]) return null;
   if (from === to) return [];
-  if (!Number.isFinite(costToEnter(state.map.tiles[to]!))) return null;
+  const pathUnit = "pathfinding" as UnitId;
   const target = fromHexKey(to);
   const wrap = toWrapContext(state.map);
   const open: SearchNode[] = [{ key: from, cost: 0, estimate: distance(fromHexKey(from), target, wrap) }];
@@ -66,10 +44,10 @@ export function findPath(state: GameState, from: HexKey, to: HexKey): HexKey[] |
     if (current.key === to) return reconstruct(cameFrom, to);
     if (current.cost !== costs.get(current.key)) continue;
     const coord = fromHexKey(current.key);
-    const next = neighborsOf(coord, state.map, (tile) => Number.isFinite(costToEnter(tile)));
+    const next = neighborsOf(coord, state.map, (tile) => tile !== undefined);
     for (const neighbor of next) {
       const key = toHexKey(neighbor);
-      const nextCost = current.cost + costToEnter(state.map.tiles[key]!);
+      const nextCost = current.cost + stepCost(state, pathUnit, current.key, key);
       if (nextCost >= (costs.get(key) ?? Number.POSITIVE_INFINITY)) continue;
       costs.set(key, nextCost);
       cameFrom.set(key, current.key);
