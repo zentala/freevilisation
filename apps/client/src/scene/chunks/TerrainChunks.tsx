@@ -14,6 +14,14 @@ export interface TerrainTile {
   readonly terrainDefId: TerrainDefId;
   readonly improvementDefId?: string | null;
   readonly borderMask?: number;
+  /** Visibility values mirror DATA-MODEL.md: unexplored, explored, visible. */
+  readonly visibility?: VisibilityState;
+}
+
+export enum VisibilityState {
+  Unexplored = 0,
+  Explored = 1,
+  Visible = 2,
 }
 
 export interface TerrainBatch {
@@ -34,6 +42,20 @@ const TERRAIN_COLORS: Record<string, number> = {
   terrain_tundra: 0x859b9b,
 };
 
+const EXPLORED_DARKENING = 0.35;
+
+/** Returns the instance tint for a tile's visibility bucket. */
+export function visibilityTint(state: VisibilityState = VisibilityState.Visible): THREE.Color {
+  const tint = new THREE.Color(0xffffff);
+  if (state === VisibilityState.Explored) tint.multiplyScalar(EXPLORED_DARKENING);
+  return tint;
+}
+
+/** Unexplored tiles are omitted so their terrain and contents are not drawn. */
+export function visibleTerrainTiles(tiles: readonly TerrainTile[]): readonly TerrainTile[] {
+  return tiles.filter((tile) => tile.visibility !== VisibilityState.Unexplored);
+}
+
 function defaultTiles(coordinates: readonly AxialCoord[]): readonly TerrainTile[] {
   return coordinates.map((coord) => ({ coord, terrainDefId: "terrain_grassland" as TerrainDefId }));
 }
@@ -42,7 +64,7 @@ function defaultTiles(coordinates: readonly AxialCoord[]): readonly TerrainTile[
 export function buildTerrainBatches(tiles: readonly TerrainTile[]): readonly TerrainBatch[] {
   const registry = new ChunkRegistry();
   const groups = new Map<string, TerrainTile[]>();
-  for (const tile of tiles) {
+  for (const tile of visibleTerrainTiles(tiles)) {
     const chunkKey = registry.ensure(tile.coord).key;
     const key = `${chunkKey}:${tile.terrainDefId}`;
     const group = groups.get(key) ?? [];
@@ -60,15 +82,20 @@ export function buildTerrainBatches(tiles: readonly TerrainTile[]): readonly Ter
 function createMesh(tiles: readonly TerrainTile[]): THREE.InstancedMesh {
   const geometry = new THREE.CylinderGeometry(HEX_RADIUS, HEX_RADIUS, 0.2, 6);
   const terrain = tiles[0]?.terrainDefId as string;
-  const material = new THREE.MeshStandardMaterial({ color: TERRAIN_COLORS[terrain] ?? 0x888888 });
+  const material = new THREE.MeshStandardMaterial({
+    color: TERRAIN_COLORS[terrain] ?? 0x888888,
+    vertexColors: true,
+  });
   const mesh = new THREE.InstancedMesh(geometry, material, tiles.length);
   const matrix = new THREE.Matrix4();
   for (const [index, tile] of tiles.entries()) {
     const position = axialToWorld(tile.coord);
     matrix.makeTranslation(position.x, position.y, position.z);
     mesh.setMatrixAt(index, matrix);
+    mesh.setColorAt(index, visibilityTint(tile.visibility));
   }
   mesh.instanceMatrix.needsUpdate = true;
+  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   mesh.userData.terrainDefId = terrain;
   return mesh;
 }
