@@ -67,6 +67,14 @@ export { advancePhase, TURN_PHASES } from "./turn/phases.js";
 export type { TurnPhase } from "./turn/phases.js";
 export { runUpkeep } from "./turn/upkeep.js";
 export type { UpkeepRules, UpkeepResult } from "./turn/upkeep.js";
+export { runGrowthProduction } from "./turn/growth-production.js";
+export type {
+  CityTickResult,
+  GrowthProductionResult,
+  GrowthProductionRules,
+  ProductionCompletion,
+  ProductionKind,
+} from "./turn/growth-production.js";
 
 export type { AxialCoord } from "./hex/coords.js";
 export { cubeS, toHexKey, fromHexKey, coordsEqual } from "./hex/coords.js";

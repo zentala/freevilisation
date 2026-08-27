@@ -2,10 +2,12 @@ import type { GameState } from "../game-state.js";
 import type { Command, CommandRejection, CommandResult, GameEvent } from "./types.js";
 import { refreshUnitMoves, type TurnSystem } from "../systems/refresh-unit-moves.js";
 import { runUpkeep } from "../turn/upkeep.js";
+import { runGrowthProduction } from "../turn/growth-production.js";
 
 const TURN_SYSTEMS: TurnSystem[] = [
   (state, playerId) => runUpkeep(state, playerId),
   refreshUnitMoves,
+  (state) => runGrowthProduction(state),
 ];
 
 /** Validates the command-specific preconditions for ending a turn. */

@@ -4,6 +4,7 @@ import type {
   CityId,
   HexKey,
   ImprovementDefId,
+  DefId,
 } from "../ids.js";
 import type { GameState } from "../game-state.js";
 
@@ -24,7 +25,14 @@ export type GameEvent =
   | { kind: "UnitMoved"; unitId: UnitId; from: HexKey; to: HexKey; movesRemaining: number }
   | { kind: "CityFounded"; cityId: CityId; playerId: PlayerId; coord: HexKey } // TODO(E03): AxialCoord
   | { kind: "TurnStarted"; turn: number; activePlayerId: PlayerId | null }
-  | { kind: "TurnEnded"; turn: number; activePlayerId: PlayerId | null };
+  | { kind: "TurnEnded"; turn: number; activePlayerId: PlayerId | null }
+  | { kind: "CityGrew"; cityId: CityId; newPopulation: number }
+  | {
+      kind: "ProductionCompleted";
+      cityId: CityId;
+      item: "unit" | "building" | "wonder";
+      defId: DefId;
+    };
 
 export interface CommandRejection {
   readonly code: "malformed" | "not_your_turn" | "unknown_entity" | "not_owner" | "illegal";
