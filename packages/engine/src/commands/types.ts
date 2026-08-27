@@ -38,7 +38,14 @@ export type GameEvent =
   | { kind: "TileExplored"; playerId: PlayerId; hexKey: HexKey }
   | { kind: "ResourceDiscovered"; playerId: PlayerId; hexKey: HexKey; resourceDefId: DefId<"resource"> }
   | { kind: "CivilizationDiscovered"; playerId: PlayerId; hexKey: HexKey; discoveredPlayerId: PlayerId }
-  | { kind: "GameOver"; winnerPlayerId: PlayerId; victoryType: DefId<"victory"> };
+  | { kind: "GameOver"; winnerPlayerId: PlayerId; victoryType: DefId<"victory"> }
+  | {
+      kind: "UnitAttacked";
+      attackerId: UnitId;
+      targetId: UnitId | CityId;
+      damageDealt: number;
+      damageTaken: number;
+    };
 
 export interface CommandRejection {
   readonly code: "malformed" | "not_your_turn" | "unknown_entity" | "not_owner" | "illegal";
