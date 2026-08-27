@@ -21,6 +21,11 @@ export function groupEntityBuckets(kind: EntityKind, entities: readonly RenderEn
   return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, grouped]) => ({ key, entities: grouped }));
 }
 
+/** Smoke-testable instance counts for each renderer bucket. */
+export function instanceCounts(kind: EntityKind, entities: readonly RenderEntity[]): Record<string, number> {
+  return Object.fromEntries(groupEntityBuckets(kind, entities).map((bucket) => [bucket.key, bucket.entities.length]));
+}
+
 function EntityBatch({ bucket, registry }: { readonly bucket: EntityBucket; readonly registry: AssetRegistry }) {
   const mesh = useRef<InstancedMesh>(null);
   const marker = useMemo(() => new Object3D(), []);
