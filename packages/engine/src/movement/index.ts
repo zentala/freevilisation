@@ -10,3 +10,5 @@ export type {
 
 export { findPath } from "./pathfinding.js";
 export { canEnter, stepCost } from "./step.js";
+export { getEmbarkedCombatState } from "./embark.js";
+export type { EmbarkedCombatState } from "./embark.js";
