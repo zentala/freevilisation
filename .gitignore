@@ -15,3 +15,6 @@ TASK.md
 
 # opencode run harness state - snapshots, logs, ledger. Never committed.
 .agents/
+
+# Dispatch runtime ledger, context packages, and isolated worktrees are local evidence.
+.dispatch/
