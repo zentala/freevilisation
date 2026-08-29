@@ -47,6 +47,7 @@ export default tseslint.config(
       "**/dist-types/**",
       "**/node_modules/**",
       "**/.claude/**",
+      "**/.dispatch/**",
       ".plan/**",
       "**/coverage/**",
     ],
