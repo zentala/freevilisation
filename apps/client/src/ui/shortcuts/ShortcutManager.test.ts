@@ -15,7 +15,9 @@ describe("ShortcutManager", () => {
   it("rejects conflicts at registration time", () => {
     const manager = new ShortcutManager();
     manager.register({ id: "first", shortcut: "Escape", handler: vi.fn() });
-    expect(() => manager.register({ id: "second", shortcut: "escape", handler: vi.fn() })).toThrow("Shortcut already registered");
+    expect(() => manager.register({ id: "second", shortcut: "escape", handler: vi.fn() })).toThrow(
+      "Shortcut already registered",
+    );
   });
 
   it("supports unregistering and reports unhandled shortcuts", () => {

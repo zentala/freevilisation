@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { AssetRegistry } from "@freevilisation/content";
-import {
-  createManifestLoader,
-  loadManifest,
-  type ManifestHotContext,
-} from "./loadManifest";
+import { createManifestLoader, loadManifest, type ManifestHotContext } from "./loadManifest";
 
 const entry = { tier: "T0" as const, icon: "warrior" };
 

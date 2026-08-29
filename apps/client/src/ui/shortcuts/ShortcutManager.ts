@@ -14,7 +14,12 @@ export interface ShortcutBinding {
 }
 
 function normalizeShortcut(shortcut: string): string {
-  return shortcut.split("+").map((part) => part.trim().toLowerCase()).filter(Boolean).sort().join("+");
+  return shortcut
+    .split("+")
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean)
+    .sort()
+    .join("+");
 }
 
 function eventShortcut(event: ShortcutEvent): string {
@@ -35,7 +40,8 @@ export class ShortcutManager {
   public register(binding: ShortcutBinding): () => void {
     const shortcut = normalizeShortcut(binding.shortcut);
     const existing = this.bindings.get(shortcut);
-    if (existing && existing.id !== binding.id) throw new Error(`Shortcut already registered: ${binding.shortcut}`);
+    if (existing && existing.id !== binding.id)
+      throw new Error(`Shortcut already registered: ${binding.shortcut}`);
     this.bindings.set(shortcut, { ...binding, shortcut });
     return () => this.unregister(binding.id);
   }

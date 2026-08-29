@@ -1,9 +1,4 @@
-import type {
-  AxialCoord,
-  Entity,
-  EntityStore,
-  HexKey,
-} from "@freevilisation/engine";
+import type { AxialCoord, Entity, EntityStore, HexKey } from "@freevilisation/engine";
 import { toHexKey } from "@freevilisation/engine";
 import { Plane, Ray, Vector3 } from "three";
 import { worldToAxial } from "./hexMath";

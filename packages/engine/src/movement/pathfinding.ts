@@ -7,10 +7,16 @@ import { toWrapContext } from "../hex/game-map.js";
 import { stepCost } from "./step.js";
 import type { UnitId } from "../ids.js";
 
-interface SearchNode { readonly key: HexKey; readonly cost: number; readonly estimate: number }
+interface SearchNode {
+  readonly key: HexKey;
+  readonly cost: number;
+  readonly estimate: number;
+}
 
 function compareNodes(a: SearchNode, b: SearchNode): number {
-  return a.estimate - b.estimate || a.cost - b.cost || (a.key as string).localeCompare(b.key as string);
+  return (
+    a.estimate - b.estimate || a.cost - b.cost || (a.key as string).localeCompare(b.key as string)
+  );
 }
 
 function popLowest(open: SearchNode[]): SearchNode {
@@ -36,7 +42,9 @@ export function findPath(state: GameState, from: HexKey, to: HexKey): HexKey[] |
   const pathUnit = "pathfinding" as UnitId;
   const target = fromHexKey(to);
   const wrap = toWrapContext(state.map);
-  const open: SearchNode[] = [{ key: from, cost: 0, estimate: distance(fromHexKey(from), target, wrap) }];
+  const open: SearchNode[] = [
+    { key: from, cost: 0, estimate: distance(fromHexKey(from), target, wrap) },
+  ];
   const costs = new Map<HexKey, number>([[from, 0]]);
   const cameFrom = new Map<HexKey, HexKey>();
   while (open.length > 0) {

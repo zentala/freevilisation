@@ -13,20 +13,14 @@ export function createMovementBudget(movesMax: MovementPoints): MovementBudget {
 }
 
 /** Returns whether a budget can pay a movement cost without going negative. */
-export function canSpendMovement(
-  budget: MovementBudget,
-  cost: MovementPoints,
-): boolean {
+export function canSpendMovement(budget: MovementBudget, cost: MovementPoints): boolean {
   assertBudget(budget);
   assertMovementPoints(cost, "cost");
   return cost <= budget.movesLeft;
 }
 
 /** Spends a cost from a budget, returning null when the cost is unaffordable. */
-export function spendMovement(
-  budget: MovementBudget,
-  cost: MovementPoints,
-): MovementBudget | null {
+export function spendMovement(budget: MovementBudget, cost: MovementPoints): MovementBudget | null {
   if (!canSpendMovement(budget, cost)) return null;
   return { movesLeft: budget.movesLeft - cost, movesMax: budget.movesMax };
 }

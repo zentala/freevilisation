@@ -58,13 +58,19 @@ describe("renderer smoke scenes", () => {
       React.createElement(InstancedEntities, { kind: "unit", entities: entities(), registry }),
     );
     const tree = renderer.toTree();
-    const batches = Array.isArray(tree) ? tree.filter((node) => node.type === "group")[0]?.children : [];
+    const batches = Array.isArray(tree)
+      ? tree.filter((node) => node.type === "group")[0]?.children
+      : [];
     expect(countInstancedMeshes(tree)).toBe(2);
     expect(countInstancedMeshes(batches)).toBe(2);
     await renderer.unmount();
 
     const cityRenderer = await ReactThreeTestRenderer.create(
-      React.createElement(InstancedEntities, { kind: "city", entities: entities().slice(0, 2), registry }),
+      React.createElement(InstancedEntities, {
+        kind: "city",
+        entities: entities().slice(0, 2),
+        registry,
+      }),
     );
     expect(countInstancedMeshes(cityRenderer.toTree())).toBe(1);
     await cityRenderer.unmount();

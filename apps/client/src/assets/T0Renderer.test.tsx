@@ -15,8 +15,12 @@ describe("T0 renderer helpers", () => {
 
   it("resolves the manifest icon to atlas UV metadata", () => {
     const uv = { x: 0, y: 0, width: 64, height: 64, u0: 0, v0: 0, u1: 0.5, v1: 1 };
-    expect(resolveIconUv(registry, "unit.warrior", { width: 128, height: 64, icons: { warrior: uv } })).toBe(uv);
-    expect(resolveIconUv(registry, "unit.unknown", { width: 128, height: 64, icons: {} })).toBeUndefined();
+    expect(
+      resolveIconUv(registry, "unit.warrior", { width: 128, height: 64, icons: { warrior: uv } }),
+    ).toBe(uv);
+    expect(
+      resolveIconUv(registry, "unit.unknown", { width: 128, height: 64, icons: {} }),
+    ).toBeUndefined();
   });
 
   it("keeps icon atlas sampling scoped to a cloned texture", () => {

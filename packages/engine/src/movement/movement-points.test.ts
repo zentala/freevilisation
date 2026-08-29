@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  canSpendMovement,
-  createMovementBudget,
-  spendMovement,
-} from "./movement-points.js";
+import { canSpendMovement, createMovementBudget, spendMovement } from "./movement-points.js";
 
 describe("movement points", () => {
   it("starts a unit with a full budget", () => {

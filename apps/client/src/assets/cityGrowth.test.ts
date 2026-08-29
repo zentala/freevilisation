@@ -11,7 +11,9 @@ describe("city growth visuals", () => {
   });
 
   it("scales a city spec without changing the source", () => {
-    const spec = { shapes: [{ kind: "box" as const, scale: [1, 1, 1] as [number, number, number] }] };
+    const spec = {
+      shapes: [{ kind: "box" as const, scale: [1, 1, 1] as [number, number, number] }],
+    };
     const grown = scaleCitySpec(spec, 8);
     expect(grown.shapes[0]?.scale?.[1]).toBeGreaterThan(1);
     expect(grown.shapes.length).toBeGreaterThan(spec.shapes.length);

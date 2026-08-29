@@ -1,11 +1,4 @@
-import type {
-  PlayerId,
-  UnitId,
-  CityId,
-  HexKey,
-  ImprovementDefId,
-  DefId,
-} from "../ids.js";
+import type { PlayerId, UnitId, CityId, HexKey, ImprovementDefId, DefId } from "../ids.js";
 import type { GameState } from "../game-state.js";
 
 export type Command =
@@ -36,8 +29,18 @@ export type GameEvent =
     }
   | { kind: "TechResearched"; playerId: PlayerId; techDefId: DefId<"tech"> }
   | { kind: "TileExplored"; playerId: PlayerId; hexKey: HexKey }
-  | { kind: "ResourceDiscovered"; playerId: PlayerId; hexKey: HexKey; resourceDefId: DefId<"resource"> }
-  | { kind: "CivilizationDiscovered"; playerId: PlayerId; hexKey: HexKey; discoveredPlayerId: PlayerId }
+  | {
+      kind: "ResourceDiscovered";
+      playerId: PlayerId;
+      hexKey: HexKey;
+      resourceDefId: DefId<"resource">;
+    }
+  | {
+      kind: "CivilizationDiscovered";
+      playerId: PlayerId;
+      hexKey: HexKey;
+      discoveredPlayerId: PlayerId;
+    }
   | { kind: "GameOver"; winnerPlayerId: PlayerId; victoryType: DefId<"victory"> }
   | {
       kind: "UnitAttacked";

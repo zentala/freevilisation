@@ -17,8 +17,18 @@ test("builds byte-identical atlas and sorted UV metadata", async () => {
   await writeFile(join(input, "zulu.svg"), '<svg viewBox="0 0 10 10"><circle /></svg>');
   await writeFile(join(input, "alpha.svg"), '<svg viewBox="0 0 10 10"><rect /></svg>');
   try {
-    await buildIconAtlas({ inputDir: input, outputPng: firstPng, outputJson: firstJson, columns: 2 });
-    await buildIconAtlas({ inputDir: input, outputPng: secondPng, outputJson: secondJson, columns: 2 });
+    await buildIconAtlas({
+      inputDir: input,
+      outputPng: firstPng,
+      outputJson: firstJson,
+      columns: 2,
+    });
+    await buildIconAtlas({
+      inputDir: input,
+      outputPng: secondPng,
+      outputJson: secondJson,
+      columns: 2,
+    });
     assert.deepEqual(await readFile(firstPng), await readFile(secondPng));
     assert.equal(await readFile(firstJson, "utf8"), await readFile(secondJson, "utf8"));
     const metadata = JSON.parse(await readFile(firstJson, "utf8"));

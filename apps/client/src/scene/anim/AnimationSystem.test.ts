@@ -10,7 +10,15 @@ describe("AnimationSystem", () => {
     let now = 100;
     const bus = new EventBus();
     const animations = new AnimationSystem(bus, { durationMs: 200, now: () => now });
-    bus.emit([{ kind: "UnitMoved", unitId: UNIT, from: "0,0" as HexKey, to: "1,0" as HexKey, movesRemaining: 2 }]);
+    bus.emit([
+      {
+        kind: "UnitMoved",
+        unitId: UNIT,
+        from: "0,0" as HexKey,
+        to: "1,0" as HexKey,
+        movesRemaining: 2,
+      },
+    ]);
 
     now = 200;
     expect(animations.getCurrentTransform(UNIT)?.x).toBeCloseTo(Math.sqrt(3) / 2);
@@ -23,8 +31,24 @@ describe("AnimationSystem", () => {
     let now = 0;
     const bus = new EventBus();
     const animations = new AnimationSystem(bus, { durationMs: 100, now: () => now });
-    bus.emit([{ kind: "UnitMoved", unitId: UNIT, from: "0,0" as HexKey, to: "1,0" as HexKey, movesRemaining: 1 }]);
-    bus.emit([{ kind: "UnitMoved", unitId: UNIT, from: "1,0" as HexKey, to: "2,0" as HexKey, movesRemaining: 0 }]);
+    bus.emit([
+      {
+        kind: "UnitMoved",
+        unitId: UNIT,
+        from: "0,0" as HexKey,
+        to: "1,0" as HexKey,
+        movesRemaining: 1,
+      },
+    ]);
+    bus.emit([
+      {
+        kind: "UnitMoved",
+        unitId: UNIT,
+        from: "1,0" as HexKey,
+        to: "2,0" as HexKey,
+        movesRemaining: 0,
+      },
+    ]);
 
     now = 150;
     expect(animations.getCurrentTransform(UNIT)?.x).toBeCloseTo(Math.sqrt(3) * 1.5);
@@ -51,10 +75,30 @@ describe("AnimationSystem", () => {
   it("pulses a damaged target without interrupting its movement tween", () => {
     let now = 0;
     const bus = new EventBus();
-    const animations = new AnimationSystem(bus, { durationMs: 300, damageFlashDurationMs: 100, now: () => now });
-    bus.emit([{ kind: "UnitMoved", unitId: UNIT, from: "0,0" as HexKey, to: "1,0" as HexKey, movesRemaining: 0 }]);
+    const animations = new AnimationSystem(bus, {
+      durationMs: 300,
+      damageFlashDurationMs: 100,
+      now: () => now,
+    });
+    bus.emit([
+      {
+        kind: "UnitMoved",
+        unitId: UNIT,
+        from: "0,0" as HexKey,
+        to: "1,0" as HexKey,
+        movesRemaining: 0,
+      },
+    ]);
     now = 50;
-    bus.emit([{ kind: "UnitAttacked", attackerId: "attacker" as UnitId, targetId: UNIT, damageDealt: 2, damageTaken: 2 }]);
+    bus.emit([
+      {
+        kind: "UnitAttacked",
+        attackerId: "attacker" as UnitId,
+        targetId: UNIT,
+        damageDealt: 2,
+        damageTaken: 2,
+      },
+    ]);
     expect(animations.getDamageFlashIntensity(UNIT)).toBeCloseTo(0.5);
     expect(animations.getCurrentTransform(UNIT)?.x).toBeCloseTo(Math.sqrt(3) / 6);
     now = 100;

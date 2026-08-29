@@ -10,11 +10,28 @@ import {
 } from "./visibility.js";
 
 function makeMap() {
-  return buildGameMap(5, 5, false, (coord) => new Tile(
-    `tile-${coord.q}-${coord.r}` as EntityId, 0, `${coord.q},${coord.r}` as HexKey,
-    "terrain_grassland" as TerrainDefId, null, null, null, false, false, false,
-    null, null, null, [],
-  ));
+  return buildGameMap(
+    5,
+    5,
+    false,
+    (coord) =>
+      new Tile(
+        `tile-${coord.q}-${coord.r}` as EntityId,
+        0,
+        `${coord.q},${coord.r}` as HexKey,
+        "terrain_grassland" as TerrainDefId,
+        null,
+        null,
+        null,
+        false,
+        false,
+        false,
+        null,
+        null,
+        null,
+        [],
+      ),
+  );
 }
 
 describe("visibility grid", () => {
@@ -37,11 +54,22 @@ describe("visibility grid", () => {
     const grid = createVisibilityGrid(map);
 
     const first = updateVisibilityWithEvents(map, grid, "2,2" as HexKey, 0, "p1" as PlayerId);
-    const second = updateVisibilityWithEvents(map, first.grid, "2,2" as HexKey, 0, "p1" as PlayerId);
+    const second = updateVisibilityWithEvents(
+      map,
+      first.grid,
+      "2,2" as HexKey,
+      0,
+      "p1" as PlayerId,
+    );
 
     expect(first.events).toEqual([
       { kind: "TileExplored", playerId: "p1", hexKey: "2,2" },
-      { kind: "ResourceDiscovered", playerId: "p1", hexKey: "2,2", resourceDefId: "resource_wheat" },
+      {
+        kind: "ResourceDiscovered",
+        playerId: "p1",
+        hexKey: "2,2",
+        resourceDefId: "resource_wheat",
+      },
       { kind: "CivilizationDiscovered", playerId: "p1", hexKey: "2,2", discoveredPlayerId: "p2" },
     ]);
     expect(second.events).toEqual([]);

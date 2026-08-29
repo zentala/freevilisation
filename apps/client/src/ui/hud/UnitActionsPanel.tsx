@@ -1,14 +1,7 @@
 import { useUiStore } from "../store/uiStore";
 
 export type UnitOrderKind =
-  | "move"
-  | "attack"
-  | "build"
-  | "fortify"
-  | "sentry"
-  | "skip"
-  | "sleep"
-  | "disband";
+  "move" | "attack" | "build" | "fortify" | "sentry" | "skip" | "sleep" | "disband";
 
 export interface UnitDefForActions {
   readonly id: string;
@@ -44,14 +37,21 @@ export function getAvailableUnitActions(def: UnitDefForActions): readonly UnitOr
 }
 
 /** Bottom HUD action strip generated from the selected unit definition. */
-export function UnitActionsPanel({ selectedUnit = null, onOrder, className = "" }: UnitActionsPanelProps) {
+export function UnitActionsPanel({
+  selectedUnit = null,
+  onOrder,
+  className = "",
+}: UnitActionsPanelProps) {
   const selectedIntent = useUiStore((state) => state.selected);
   const unit = selectedUnit ?? null;
   if (!unit || (selectedIntent && selectedIntent.kind !== "unit")) return null;
 
   const actions = getAvailableUnitActions(unit.def);
   return (
-    <section aria-label="Unit actions" className={`rounded-lg bg-slate-900/90 p-3 text-slate-100 shadow-xl ${className}`}>
+    <section
+      aria-label="Unit actions"
+      className={`rounded-lg bg-slate-900/90 p-3 text-slate-100 shadow-xl ${className}`}
+    >
       <div className="mb-2 flex items-center justify-between gap-4">
         <h2 className="font-semibold">{unit.def.name ?? unit.def.id}</h2>
         {unit.def.effects && unit.def.effects.length > 0 ? (

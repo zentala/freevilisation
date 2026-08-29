@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BuildingDefId } from "../ids.js";
 import { runUpkeep } from "./upkeep.js";
-import { P1, U1, WARRIOR, makeBaseState } from "../commands/test-fixtures.js";
+import { P1, WARRIOR, makeBaseState } from "../commands/test-fixtures.js";
 
 const GRANARY = "building_granary" as BuildingDefId;
 

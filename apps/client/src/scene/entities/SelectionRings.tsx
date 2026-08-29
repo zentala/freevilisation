@@ -5,16 +5,27 @@ import { InstancedMesh, Object3D, Vector3 } from "three";
 import { axialToWorld } from "../hexMath";
 import type { AnimationSystem } from "../anim/AnimationSystem";
 
-export interface SelectedEntity { readonly id: EntityId; readonly coord: AxialCoord; }
+export interface SelectedEntity {
+  readonly id: EntityId;
+  readonly coord: AxialCoord;
+}
 
 export function resolveSelectionRingTransforms(
   selected: readonly SelectedEntity[],
   animation?: Pick<AnimationSystem, "getCurrentTransform">,
 ): Vector3[] {
-  return selected.map((entity) => animation?.getCurrentTransform(entity.id) ?? axialToWorld(entity.coord));
+  return selected.map(
+    (entity) => animation?.getCurrentTransform(entity.id) ?? axialToWorld(entity.coord),
+  );
 }
 
-export function SelectionRings({ selected, animation }: { readonly selected: readonly SelectedEntity[]; readonly animation?: AnimationSystem }) {
+export function SelectionRings({
+  selected,
+  animation,
+}: {
+  readonly selected: readonly SelectedEntity[];
+  readonly animation?: AnimationSystem;
+}) {
   const mesh = useRef<InstancedMesh>(null);
   const marker = useMemo(() => new Object3D(), []);
   const update = () => {
@@ -29,5 +40,10 @@ export function SelectionRings({ selected, animation }: { readonly selected: rea
   };
   useLayoutEffect(update, [selected, animation]);
   useFrame(update);
-  return <instancedMesh ref={mesh} args={[undefined, undefined, selected.length]}><torusGeometry args={[0.72, 0.045, 8, 24]} /><meshBasicMaterial color={0xfacc15} transparent opacity={0.8} /></instancedMesh>;
+  return (
+    <instancedMesh ref={mesh} args={[undefined, undefined, selected.length]}>
+      <torusGeometry args={[0.72, 0.045, 8, 24]} />
+      <meshBasicMaterial color={0xfacc15} transparent opacity={0.8} />
+    </instancedMesh>
+  );
 }

@@ -39,7 +39,7 @@ export function refreshUnitMoves(
       throw new Error("movesMax modifier must return a finite non-negative number");
     }
     let movesLeft = movesMax;
-    let remaining = [...unit.moveOrder];
+    const remaining = [...unit.moveOrder];
     const eventsForUnit: GameEvent[] = [];
     while (remaining.length > 0) {
       const cost = stepCost(state, unit.id as UnitId, coord, remaining[0]!);
@@ -73,7 +73,7 @@ export function refreshUnitMoves(
     );
   }
 
-    return {
+  return {
     state: { ...state, entities: { ...state.entities, units: nextUnits } },
     events,
   };

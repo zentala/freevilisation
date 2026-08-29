@@ -6,9 +6,7 @@ import { axialToWorld, HEX_SIZE, worldToAxial } from "./hexMath";
 describe("hexMath", () => {
   it("uses pointy-top axial reference positions", () => {
     expect(axialToWorld({ q: 0, r: 0 })).toEqual(new Vector3(0, 0, 0));
-    expect(axialToWorld({ q: 1, r: 0 })).toEqual(
-      new Vector3(Math.sqrt(3) * HEX_SIZE, 0, 0),
-    );
+    expect(axialToWorld({ q: 1, r: 0 })).toEqual(new Vector3(Math.sqrt(3) * HEX_SIZE, 0, 0));
     expect(axialToWorld({ q: 0, r: 1 })).toEqual(
       new Vector3((Math.sqrt(3) / 2) * HEX_SIZE, 0, 1.5 * HEX_SIZE),
     );

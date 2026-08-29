@@ -83,7 +83,10 @@ export function buildTerrainBatches(tiles: readonly TerrainTile[]): readonly Ter
   }));
 }
 
-function createMesh(tiles: readonly TerrainTile[], bounds: ReturnType<ChunkRegistry["ensure"]>["bounds"]): THREE.InstancedMesh {
+function createMesh(
+  tiles: readonly TerrainTile[],
+  bounds: ReturnType<ChunkRegistry["ensure"]>["bounds"],
+): THREE.InstancedMesh {
   const geometry = new THREE.CylinderGeometry(HEX_RADIUS, HEX_RADIUS, 0.2, 6);
   const terrain = tiles[0]?.terrainDefId as string;
   const material = new THREE.MeshStandardMaterial({
@@ -133,6 +136,7 @@ export class TerrainBatchUpdater {
     for (const batch of batches) {
       for (const tile of batch.tiles) this.registry.ensure(tile.coord);
     }
+    this.registry.consumeDirty();
   }
 
   update(coord: AxialCoord): boolean {
@@ -154,7 +158,12 @@ export interface TerrainBatchTarget {
 }
 
 /** Renders one raw InstancedMesh for each terrain/chunk pair. */
-export function TerrainChunks({ coordinates = [], tiles, isWraparoundX = false, mapWidth = 1 }: TerrainChunksProps) {
+export function TerrainChunks({
+  coordinates = [],
+  tiles,
+  isWraparoundX = false,
+  mapWidth = 1,
+}: TerrainChunksProps) {
   const meshes = useMemo(() => {
     const source = tiles ?? defaultTiles(coordinates);
     const registry = new ChunkRegistry();
@@ -168,7 +177,11 @@ export function TerrainChunks({ coordinates = [], tiles, isWraparoundX = false, 
     <group>
       {meshes.flatMap(({ key, mesh }) =>
         wrapOffsets(isWraparoundX, mapWidth).map((offset) => (
-          <primitive key={`${key}:${offset}`} object={offset === 0 ? mesh : mesh.clone()} position={[offset, 0, 0]} />
+          <primitive
+            key={`${key}:${offset}`}
+            object={offset === 0 ? mesh : mesh.clone()}
+            position={[offset, 0, 0]}
+          />
         )),
       )}
     </group>

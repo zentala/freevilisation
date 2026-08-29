@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_PLAYER_COLOR, playerColorAccent, playerColorNumber, resolvePlayerColor } from "./playerColors";
+import {
+  DEFAULT_PLAYER_COLOR,
+  playerColorAccent,
+  playerColorNumber,
+  resolvePlayerColor,
+} from "./playerColors";
 
 describe("player color system", () => {
   it("maps CivDef.colorHex to a stable numeric renderer color", () => {

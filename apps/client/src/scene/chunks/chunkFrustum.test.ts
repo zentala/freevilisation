@@ -27,6 +27,8 @@ describe("chunk frustum culling", () => {
   });
 
   it("rejects a distant chunk", () => {
-    expect(isChunkVisible(boundsForChunk(toChunkKey({ q: 320, r: 320 })), cameraAt(0, 10))).toBe(false);
+    expect(isChunkVisible(boundsForChunk(toChunkKey({ q: 320, r: 320 })), cameraAt(0, 10))).toBe(
+      false,
+    );
   });
 });
