@@ -11,6 +11,7 @@
     "typecheck": "tsc --build",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:migration": "node tools/task-migration/migration.test.mjs",
     "test:determinism": "vitest run determinism",
     "clean": "tsc --build --clean",
     "format": "prettier --write .",
