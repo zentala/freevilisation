@@ -18,7 +18,10 @@ export function buildPathPreviewPoints(path: readonly HexKey[]): Vector3[] {
 }
 
 /** Draws the currently previewed movement route above the terrain. */
-export function MovementPathPreview({ path, color = "#fbbf24" }: MovementPathPreviewProps): ReactElement | null {
+export function MovementPathPreview({
+  path,
+  color = "#fbbf24",
+}: MovementPathPreviewProps): ReactElement | null {
   if (path.length < 2) return null;
   return <Line points={buildPathPreviewPoints(path)} color={color} lineWidth={2} />;
 }

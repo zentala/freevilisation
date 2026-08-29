@@ -14,10 +14,6 @@ describe("buildPathPreviewPoints", () => {
 
   it("supports negative axial coordinates", () => {
     const points = buildPathPreviewPoints(["-2,3"] as HexKey[]);
-    expect(points[0]?.toArray()).toEqual([
-      -Math.sqrt(3) / 2,
-      0,
-      4.5,
-    ]);
+    expect(points[0]?.toArray()).toEqual([-Math.sqrt(3) / 2, 0, 4.5]);
   });
 });

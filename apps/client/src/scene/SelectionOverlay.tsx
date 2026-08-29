@@ -30,7 +30,10 @@ export function highlightPosition(coord: AxialCoord, height: number): THREE.Vect
   return axialToWorld(coord).setY(height);
 }
 
-function resultFromEvent(event: { readonly ray: THREE.Ray }, store: EntityLookup): PickResult | null {
+function resultFromEvent(
+  event: { readonly ray: THREE.Ray },
+  store: EntityLookup,
+): PickResult | null {
   return pickHex(event.ray, store);
 }
 
@@ -96,7 +99,9 @@ export function SelectionOverlay({
       {currentSelected && (
         <Highlight
           result={currentSelected}
-          color={playerColorNumber(selectedPlayerColor ? { colorHex: selectedPlayerColor } : undefined)}
+          color={playerColorNumber(
+            selectedPlayerColor ? { colorHex: selectedPlayerColor } : undefined,
+          )}
           height={0.08}
         />
       )}

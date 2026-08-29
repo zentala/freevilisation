@@ -12,9 +12,19 @@ import { updatePlayerVisibilityWithEvents } from "../visibility.js";
 
 function withOccupants(tile: Tile, occupantUnitIds: UnitId[]): Tile {
   return new Tile(
-    tile.id, tile.createdTurn, tile.hexKey, tile.terrainDefId, tile.featureDefId,
-    tile.resourceDefId, tile.improvementDefId, tile.riverEdge0, tile.riverEdge1,
-    tile.riverEdge2, tile.ownerCity, tile.ownerPlayer, tile.workedByCity,
+    tile.id,
+    tile.createdTurn,
+    tile.hexKey,
+    tile.terrainDefId,
+    tile.featureDefId,
+    tile.resourceDefId,
+    tile.improvementDefId,
+    tile.riverEdge0,
+    tile.riverEdge1,
+    tile.riverEdge2,
+    tile.ownerCity,
+    tile.ownerPlayer,
+    tile.workedByCity,
     occupantUnitIds,
   );
 }

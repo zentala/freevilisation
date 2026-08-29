@@ -21,6 +21,7 @@ describe("previewPath", () => {
           }),
         ),
       },
+      entities: { units: {}, cities: {} },
     } as never;
     expect(previewPath(state, "0,0" as HexKey, "1,0" as HexKey)).toEqual(["1,0"]);
   });

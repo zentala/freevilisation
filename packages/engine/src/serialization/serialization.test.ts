@@ -63,6 +63,8 @@ function makeNonTrivialState() {
     capitalCityId: null,
     isAlive: true,
     eliminatedTurn: null,
+    currentResearch: null,
+    needsNextTech: false,
     components: new Map(),
   } as never;
   state.playerOrder = [playerId];

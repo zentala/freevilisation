@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  AssetRegistry,
-  assetManifestSchema,
-  primitiveSpecSchema,
-} from "./manifest";
+import { AssetRegistry, assetManifestSchema, primitiveSpecSchema } from "./manifest";
 
 const primitive = {
   shapes: [{ kind: "box" as const, scale: [1, 2, 1] as [number, number, number] }],
@@ -23,9 +19,7 @@ describe("asset manifest schema", () => {
 
   it("rejects malformed primitive shapes and unknown fields", () => {
     expect(() => primitiveSpecSchema.parse({ shapes: [] })).toThrow();
-    expect(() =>
-      assetManifestSchema.parse({ item: { tier: "T0", unexpected: true } }),
-    ).toThrow();
+    expect(() => assetManifestSchema.parse({ item: { tier: "T0", unexpected: true } })).toThrow();
   });
 
   it("rejects invalid tiers and empty asset references", () => {

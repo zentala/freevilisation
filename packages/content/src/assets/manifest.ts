@@ -26,10 +26,7 @@ const assetManifestEntryBaseSchema = z.object({
 export const assetManifestEntrySchema = assetManifestEntryBaseSchema.strict();
 export type AssetManifestEntry = z.infer<typeof assetManifestEntrySchema>;
 
-export const assetManifestSchema = z.record(
-  z.string().min(1),
-  assetManifestEntrySchema,
-);
+export const assetManifestSchema = z.record(z.string().min(1), assetManifestEntrySchema);
 export type AssetManifest = z.infer<typeof assetManifestSchema>;
 
 /** Read-only lookup over a validated, immutable asset manifest. */

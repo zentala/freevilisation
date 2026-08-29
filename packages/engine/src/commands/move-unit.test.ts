@@ -57,7 +57,10 @@ describe("applyCommand — MoveUnit", () => {
     const state = makeBaseState();
     state.map.tiles["1,0" as HexKey]!.terrainDefId = "terrain_ocean" as TerrainDefId;
     const result = applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["1,0" as HexKey],
     });
 
     expect(result.ok).toBe(true);
@@ -73,7 +76,10 @@ describe("applyCommand — MoveUnit", () => {
     unit.isEmbarked = true;
     unit.coord = "0,0" as HexKey;
     const result = applyCommand(state, {
-      kind: "MoveUnit", playerId: P1, unitId: U1, path: ["1,0" as HexKey],
+      kind: "MoveUnit",
+      playerId: P1,
+      unitId: U1,
+      path: ["1,0" as HexKey],
     });
 
     expect(result.ok).toBe(true);

@@ -14,11 +14,7 @@ const SQRT_THREE = Math.sqrt(3);
  * elevation and is therefore always zero for a tile centre.
  */
 export function axialToWorld(coord: AxialCoord): Vector3 {
-  return new Vector3(
-    HEX_SIZE * SQRT_THREE * (coord.q + coord.r / 2),
-    0,
-    HEX_SIZE * 1.5 * coord.r,
-  );
+  return new Vector3(HEX_SIZE * SQRT_THREE * (coord.q + coord.r / 2), 0, HEX_SIZE * 1.5 * coord.r);
 }
 
 /**
@@ -27,8 +23,7 @@ export function axialToWorld(coord: AxialCoord): Vector3 {
  * ground plane and terrain elevation does not change the tile footprint.
  */
 export function worldToAxial(point: Vector3): AxialCoord {
-  const fractionalQ =
-    ((SQRT_THREE / 3) * point.x - (1 / 3) * point.z) / HEX_SIZE;
+  const fractionalQ = ((SQRT_THREE / 3) * point.x - (1 / 3) * point.z) / HEX_SIZE;
   const fractionalR = ((2 / 3) * point.z) / HEX_SIZE;
   const fractionalS = -fractionalQ - fractionalR;
 

@@ -1,18 +1,11 @@
-import {
-  AssetRegistry,
-  assetManifestSchema,
-  type AssetManifest,
-} from "@freevilisation/content";
+import { AssetRegistry, assetManifestSchema, type AssetManifest } from "@freevilisation/content";
 import manifestJson from "./manifest.json";
 
 type ManifestModule = { default?: unknown } | unknown;
 
 /** The small part of Vite's HMR API used by the manifest loader. */
 export interface ManifestHotContext {
-  accept(
-    dependency: string,
-    callback: (module: ManifestModule) => void,
-  ): void;
+  accept(dependency: string, callback: (module: ManifestModule) => void): void;
 }
 
 export interface ManifestLoader {
@@ -23,11 +16,7 @@ export interface ManifestLoader {
 const viteHot = (import.meta as ImportMeta & { hot?: ManifestHotContext }).hot;
 
 function manifestFromModule(module: ManifestModule): unknown {
-  if (
-    typeof module === "object" &&
-    module !== null &&
-    "default" in module
-  ) {
+  if (typeof module === "object" && module !== null && "default" in module) {
     return module.default;
   }
   return module;

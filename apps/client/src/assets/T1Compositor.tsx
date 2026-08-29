@@ -57,19 +57,28 @@ export function resolveT1Color(
   return resolvePlayerColor(undefined);
 }
 
-function PrimitiveMesh({ shape, color }: { readonly shape: PrimitiveShape; readonly color: THREE.Color }) {
+function PrimitiveMesh({
+  shape,
+  color,
+}: {
+  readonly shape: PrimitiveShape;
+  readonly color: THREE.Color;
+}) {
   const scale = shape.scale ?? [1, 1, 1];
   const position = shape.position ?? [0, 0, 0];
   const rotation = shape.rotation ?? [0, 0, 0];
-  const args = shape.kind === "box"
-    ? [1, 1, 1]
-    : shape.kind === "cylinder"
-      ? [0.5, 0.5, 1, 12]
-      : [0, 0.5, 1, 12];
+  const args =
+    shape.kind === "box"
+      ? [1, 1, 1]
+      : shape.kind === "cylinder"
+        ? [0.5, 0.5, 1, 12]
+        : [0, 0.5, 1, 12];
   return (
     <mesh position={position} rotation={rotation} scale={scale}>
       {shape.kind === "box" && <boxGeometry args={args as [number, number, number]} />}
-      {shape.kind === "cylinder" && <cylinderGeometry args={args as [number, number, number, number]} />}
+      {shape.kind === "cylinder" && (
+        <cylinderGeometry args={args as [number, number, number, number]} />
+      )}
       {shape.kind === "cone" && <coneGeometry args={args as [number, number, number, number]} />}
       <meshStandardMaterial color={color} />
     </mesh>
@@ -86,17 +95,24 @@ export function T1Compositor({
   position = [0, 0, 0],
   scale = 1,
 }: T1CompositorProps) {
-  const storePopulation = useGameViewStore((view) => cityId ? view.gameState?.entities.cities[cityId]?.population : undefined);
+  const storePopulation = useGameViewStore((view) =>
+    cityId ? view.gameState?.entities.cities[cityId]?.population : undefined,
+  );
   const resolvedPopulation = population ?? storePopulation;
   const baseSpec = resolveT1Spec(registry, defId);
-  const spec = baseSpec && resolvedPopulation !== undefined && categoryOf(defId) === "city"
-    ? scaleCitySpec(baseSpec, resolvedPopulation)
-    : baseSpec;
+  const spec =
+    baseSpec && resolvedPopulation !== undefined && categoryOf(defId) === "city"
+      ? scaleCitySpec(baseSpec, resolvedPopulation)
+      : baseSpec;
   const color = resolveT1Color(registry, defId, ownerColor);
   const accent = playerColorAccent({ colorHex: `#${color.getHexString()}` });
   if (!spec) return null;
   return (
-    <group position={position} scale={scale} userData={{ defId, tier: "T1", population: resolvedPopulation }}>
+    <group
+      position={position}
+      scale={scale}
+      userData={{ defId, tier: "T1", population: resolvedPopulation }}
+    >
       {spec.shapes.map((shape, index) => (
         <PrimitiveMesh key={`${shape.kind}-${index}`} shape={shape} color={accent} />
       ))}

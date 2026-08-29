@@ -22,7 +22,9 @@ describe("T1 compositor", () => {
     const unit = resolveT1Spec(registry, "unit.warrior");
     const building = resolveT1Spec(registry, "building.granary");
     const wonder = resolveT1Spec(registry, "wonder.pyramids");
-    expect(new Set([unit?.shapes.length, building?.shapes.length, wonder?.shapes.length]).size).toBe(1);
+    expect(
+      new Set([unit?.shapes.length, building?.shapes.length, wonder?.shapes.length]).size,
+    ).toBe(1);
     expect(unit?.shapes[1]?.kind).toBe("cone");
     expect(building?.shapes[0]?.kind).toBe("box");
     expect(wonder?.shapes[1]?.scale?.[1]).toBeGreaterThan(1);
@@ -30,7 +32,11 @@ describe("T1 compositor", () => {
 
   it("uses palette before owner color", () => {
     const registry = new AssetRegistry({
-      "unit.warrior": { tier: "T1", palette: ["#123456"], primitive: { shapes: [{ kind: "box" }] } },
+      "unit.warrior": {
+        tier: "T1",
+        palette: ["#123456"],
+        primitive: { shapes: [{ kind: "box" }] },
+      },
     });
     expect(resolveT1Color(registry, "unit.warrior", 0xff0000).getHex()).toBe(0x123456);
   });

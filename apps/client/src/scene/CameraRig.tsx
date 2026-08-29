@@ -87,9 +87,7 @@ export function CameraRig({
     };
 
     const isGameKey = (key: string) =>
-      ["w", "a", "s", "d", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
-        key,
-      );
+      ["w", "a", "s", "d", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key);
     const isTextInput = (target: EventTarget | null) =>
       target instanceof HTMLInputElement ||
       target instanceof HTMLTextAreaElement ||

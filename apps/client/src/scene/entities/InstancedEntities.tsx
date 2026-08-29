@@ -7,10 +7,21 @@ import { stackOffset } from "./stacking";
 
 export type EntityKind = "unit" | "city";
 export type VisibilityBucket = "visible" | "explored" | "unexplored";
-export interface RenderEntity { readonly id: string; readonly defId: string; readonly hexKey: HexKey; readonly visibility: VisibilityBucket; }
-export interface EntityBucket { readonly key: string; readonly entities: readonly RenderEntity[]; }
+export interface RenderEntity {
+  readonly id: string;
+  readonly defId: string;
+  readonly hexKey: HexKey;
+  readonly visibility: VisibilityBucket;
+}
+export interface EntityBucket {
+  readonly key: string;
+  readonly entities: readonly RenderEntity[];
+}
 
-export function groupEntityBuckets(kind: EntityKind, entities: readonly RenderEntity[]): EntityBucket[] {
+export function groupEntityBuckets(
+  kind: EntityKind,
+  entities: readonly RenderEntity[],
+): EntityBucket[] {
   const groups = new Map<string, RenderEntity[]>();
   for (const entity of entities) {
     const key = `${kind}:${entity.defId}:${entity.visibility}`;
@@ -18,15 +29,28 @@ export function groupEntityBuckets(kind: EntityKind, entities: readonly RenderEn
     group.push(entity);
     groups.set(key, group);
   }
-  return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, grouped]) => ({ key, entities: grouped }));
+  return [...groups.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, grouped]) => ({ key, entities: grouped }));
 }
 
 /** Smoke-testable instance counts for each renderer bucket. */
-export function instanceCounts(kind: EntityKind, entities: readonly RenderEntity[]): Record<string, number> {
-  return Object.fromEntries(groupEntityBuckets(kind, entities).map((bucket) => [bucket.key, bucket.entities.length]));
+export function instanceCounts(
+  kind: EntityKind,
+  entities: readonly RenderEntity[],
+): Record<string, number> {
+  return Object.fromEntries(
+    groupEntityBuckets(kind, entities).map((bucket) => [bucket.key, bucket.entities.length]),
+  );
 }
 
-function EntityBatch({ bucket, registry }: { readonly bucket: EntityBucket; readonly registry: AssetRegistry }) {
+function EntityBatch({
+  bucket,
+  registry,
+}: {
+  readonly bucket: EntityBucket;
+  readonly registry: AssetRegistry;
+}) {
   const mesh = useRef<InstancedMesh>(null);
   const marker = useMemo(() => new Object3D(), []);
   useLayoutEffect(() => {
@@ -44,9 +68,34 @@ function EntityBatch({ bucket, registry }: { readonly bucket: EntityBucket; read
     target.instanceMatrix.needsUpdate = true;
   }, [bucket.entities, marker]);
   const asset = registry.resolve(bucket.entities[0]?.defId ?? "");
-  return <instancedMesh ref={mesh} args={[asset ? undefined : undefined, undefined, bucket.entities.length]} userData={{ bucket: bucket.key }}><boxGeometry args={[0.7, 0.7, 0.7]} /><meshStandardMaterial color={bucket.entities[0]?.visibility === "explored" ? 0x64748b : 0x38bdf8} /></instancedMesh>;
+  return (
+    <instancedMesh
+      ref={mesh}
+      args={[asset ? undefined : undefined, undefined, bucket.entities.length]}
+      userData={{ bucket: bucket.key }}
+    >
+      <boxGeometry args={[0.7, 0.7, 0.7]} />
+      <meshStandardMaterial
+        color={bucket.entities[0]?.visibility === "explored" ? 0x64748b : 0x38bdf8}
+      />
+    </instancedMesh>
+  );
 }
 
-export function InstancedEntities({ kind, entities, registry }: { readonly kind: EntityKind; readonly entities: readonly RenderEntity[]; readonly registry: AssetRegistry }) {
-  return <group>{groupEntityBuckets(kind, entities).map((bucket) => <EntityBatch key={bucket.key} bucket={bucket} registry={registry} />)}</group>;
+export function InstancedEntities({
+  kind,
+  entities,
+  registry,
+}: {
+  readonly kind: EntityKind;
+  readonly entities: readonly RenderEntity[];
+  readonly registry: AssetRegistry;
+}) {
+  return (
+    <group>
+      {groupEntityBuckets(kind, entities).map((bucket) => (
+        <EntityBatch key={bucket.key} bucket={bucket} registry={registry} />
+      ))}
+    </group>
+  );
 }

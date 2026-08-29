@@ -26,17 +26,36 @@ export function selectTopBarValues(state: GameState | null): TopBarValues {
   };
 }
 
-function Yield({ label, value, rate }: { readonly label: string; readonly value: number; readonly rate?: number }): ReactElement {
-  return <span aria-label={`${label} ${value}`} className="flex items-center gap-1"><span>{label}</span><strong>{value}</strong>{rate !== undefined && <small className="text-slate-300">(+{rate})</small>}</span>;
+function Yield({
+  label,
+  value,
+  rate,
+}: {
+  readonly label: string;
+  readonly value: number;
+  readonly rate?: number;
+}): ReactElement {
+  return (
+    <span aria-label={`${label} ${value}`} className="flex items-center gap-1">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      {rate !== undefined && <small className="text-slate-300">(+{rate})</small>}
+    </span>
+  );
 }
 
 /** Persistent top bar wired only to gameViewStore selectors. */
 export function TopBar(): ReactElement {
   const values = useGameViewStore((view) => selectTopBarValues(view.gameState));
-  return <div aria-label="Game status" className="pointer-events-auto flex gap-4 rounded-lg bg-slate-950/85 px-4 py-2 text-sm text-white shadow-lg">
-    <span aria-label={`Turn ${values.turn}`}>Turn {values.turn}</span>
-    <Yield label="Gold" value={values.gold} rate={values.goldPerTurn} />
-    <Yield label="Science" value={values.sciencePerTurn} />
-    <Yield label="Culture" value={values.culturePerTurn} />
-  </div>;
+  return (
+    <div
+      aria-label="Game status"
+      className="pointer-events-auto flex gap-4 rounded-lg bg-slate-950/85 px-4 py-2 text-sm text-white shadow-lg"
+    >
+      <span aria-label={`Turn ${values.turn}`}>Turn {values.turn}</span>
+      <Yield label="Gold" value={values.gold} rate={values.goldPerTurn} />
+      <Yield label="Science" value={values.sciencePerTurn} />
+      <Yield label="Culture" value={values.culturePerTurn} />
+    </div>
+  );
 }

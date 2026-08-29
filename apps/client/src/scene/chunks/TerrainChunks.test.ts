@@ -26,13 +26,13 @@ describe("buildTerrainBatches", () => {
 
   it("retains tile order so matrix instances are deterministic", () => {
     const tiles = [
-      { coord: { q: -1, r: 2 }, terrainDefId: terrain("terrain_tundra") },
       { coord: { q: 3, r: -2 }, terrainDefId: terrain("terrain_tundra") },
+      { coord: { q: 4, r: -3 }, terrainDefId: terrain("terrain_tundra") },
     ];
     const batch = buildTerrainBatches(tiles)[0]!;
 
     expect(batch.tiles).toEqual(tiles);
-    expect(axialToWorld(batch.tiles[1]!.coord).toArray()).toEqual([Math.sqrt(3) * 2, 0, -3]);
+    expect(axialToWorld(batch.tiles[1]!.coord).toArray()).toEqual([Math.sqrt(3) * 2.5, 0, -4.5]);
   });
 
   it("updates one instance matrix without rebuilding other batches", () => {
@@ -43,7 +43,11 @@ describe("buildTerrainBatches", () => {
     ];
     const batches = buildTerrainBatches(tiles);
     const meshes = batches.map((batch) => ({
-      mesh: new THREE.InstancedMesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial(), batch.tiles.length),
+      mesh: new THREE.InstancedMesh(
+        new THREE.BufferGeometry(),
+        new THREE.MeshBasicMaterial(),
+        batch.tiles.length,
+      ),
       tiles: batch.tiles,
     }));
     const firstSetMatrix = vi.spyOn(meshes[0]!.mesh, "setMatrixAt");

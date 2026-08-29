@@ -11,10 +11,7 @@ describe("pickHex", () => {
   it("resolves a ground ray to an axial coordinate and looks up entities", () => {
     const entities: Entity[] = [];
     const store = makeStore(entities);
-    const ray = new Ray(
-      new Vector3(Math.sqrt(3) * 3, 10, 6),
-      new Vector3(0, -1, 0),
-    );
+    const ray = new Ray(new Vector3(Math.sqrt(3) * 3, 10, 6), new Vector3(0, -1, 0));
 
     const result = pickHex(ray, store);
 
@@ -22,9 +19,7 @@ describe("pickHex", () => {
     expect(result?.hexKey).toBe("1,4");
     expect(result?.entities).toBe(entities);
     expect(store.atHex).toHaveBeenCalledWith("1,4");
-    expect(result?.worldPoint).toEqual(
-      new Vector3(Math.sqrt(3) * 3, 0, 6),
-    );
+    expect(result?.worldPoint).toEqual(new Vector3(Math.sqrt(3) * 3, 0, 6));
   });
 
   it("supports a custom ground plane", () => {

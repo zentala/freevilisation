@@ -14,6 +14,9 @@ export const useGameViewStore = create<GameViewStore>((set, get) => ({
   cityPopulation: (cityId) => get().gameState?.entities.cities[cityId]?.population,
 }));
 
-export function selectCityPopulation(view: Pick<GameViewStore, "gameState">, cityId: CityId): number | undefined {
+export function selectCityPopulation(
+  view: Pick<GameViewStore, "gameState">,
+  cityId: CityId,
+): number | undefined {
   return view.gameState?.entities.cities[cityId]?.population;
 }

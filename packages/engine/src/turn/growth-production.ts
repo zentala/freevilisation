@@ -41,7 +41,10 @@ export function runGrowthProduction(
     a.localeCompare(b),
   )) {
     const cityId = rawCityId as CityId;
-    const result = rules.tickCity({ ...state, entities: { ...state.entities, cities: nextCities } }, city);
+    const result = rules.tickCity(
+      { ...state, entities: { ...state.entities, cities: nextCities } },
+      city,
+    );
     nextCities[cityId] = result.city;
     if (result.grewFrom !== null) {
       events.push({ kind: "CityGrew", cityId, newPopulation: result.city.population });

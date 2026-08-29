@@ -23,9 +23,7 @@ describe("resolveVictory", () => {
     expect(result.state.phase).toBe("game_over");
     expect(result.state.winnerPlayerId).toBe(P1);
     expect(result.state.victoryType).toBe(VICTORY);
-    expect(result.events).toEqual([
-      { kind: "GameOver", winnerPlayerId: P1, victoryType: VICTORY },
-    ]);
+    expect(result.events).toEqual([{ kind: "GameOver", winnerPlayerId: P1, victoryType: VICTORY }]);
     expect(state.phase).toBe("playing");
   });
 

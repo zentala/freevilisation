@@ -3,10 +3,7 @@ import type { Command, CommandResult, CommandRejection } from "./types.js";
 import { validateMoveUnit, handleMoveUnit } from "./move-unit.js";
 import { validateFoundCity, handleFoundCity } from "./found-city.js";
 import { handleEndTurn, validateEndTurn } from "./end-turn.js";
-import {
-  handleBuildImprovement,
-  validateBuildImprovement,
-} from "./build-improvement.js";
+import { handleBuildImprovement, validateBuildImprovement } from "./build-improvement.js";
 import { handleFortifyUnit, validateFortifyUnit } from "./fortify-unit.js";
 import { handleSleepUnit, validateSleepUnit } from "./sleep-unit.js";
 
