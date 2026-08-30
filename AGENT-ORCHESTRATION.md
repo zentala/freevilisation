@@ -20,6 +20,14 @@ Cross-repository coordination board:
   `freevilisation:E08-W5-T3` failed without a commit. Its ledger and worktrees
   are preserved for audited recovery.
 
+## Next action
+
+Run the audited single-task recovery using the existing run and ledger. Do not
+create a new run, manually change statuses, or start overnight execution.
+The exact cross-machine resume document is
+`agent-orchestration-system/handoffs/H-E06-SESSION-RESUME.md` —
+`C:\Users\zentala\.codex\projects\agent-orchestration-system\handoffs\H-E06-SESSION-RESUME.md`.
+
 ## Local communication rule
 
 Product changes remain in this repository. Report task status, source paths,
