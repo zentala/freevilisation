@@ -1,8 +1,6 @@
 node_modules/
 dist/
 dist-types/
-.plan/
-!.plan/
 .plan/*
 !.plan/AGENT-ORCHESTRATION.md
 .env
