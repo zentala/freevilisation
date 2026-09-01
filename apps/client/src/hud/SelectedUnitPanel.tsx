@@ -30,24 +30,24 @@ export function SelectedUnitPanel({
   return (
     <section
       aria-label="Selected unit"
-      className="pointer-events-auto fixed bottom-6 left-6 z-10 rounded-lg bg-slate-900/90 p-4 text-white shadow-lg"
+      className="pointer-events-auto fixed bottom-2 left-2 sm:bottom-6 sm:left-6 z-10 rounded-lg bg-slate-900/90 p-2 sm:p-4 text-white shadow-lg max-w-xs"
     >
-      <p className="text-xs text-slate-300">{selectedUnitId ?? "No unit selected"}</p>
+      <p className="text-xs text-slate-300 truncate">{selectedUnitId ?? "No unit selected"}</p>
       <button
         type="button"
         aria-label="Select next idle unit"
         disabled={idleUnitCount === 0}
         onClick={onNextIdleUnit}
-        className="mt-2 rounded bg-slate-700 px-3 py-2 text-sm hover:bg-slate-600 disabled:opacity-50"
+        className="mt-2 rounded bg-slate-700 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm hover:bg-slate-600 disabled:opacity-50 w-full"
       >
-        Next idle unit
+        Next idle
       </button>
       <div className="mt-2 flex gap-1">
         <button
           type="button"
           aria-label="Sentry unit"
           onClick={onSentry}
-          className="rounded bg-slate-700 px-2 py-1 text-xs hover:bg-slate-600"
+          className="flex-1 rounded bg-slate-700 px-1 sm:px-2 py-1 text-xs hover:bg-slate-600"
         >
           Sentry
         </button>
@@ -55,7 +55,7 @@ export function SelectedUnitPanel({
           type="button"
           aria-label="Fortify unit"
           onClick={onFortify}
-          className="rounded bg-slate-700 px-2 py-1 text-xs hover:bg-slate-600"
+          className="flex-1 rounded bg-slate-700 px-1 sm:px-2 py-1 text-xs hover:bg-slate-600"
         >
           Fortify
         </button>
@@ -63,7 +63,7 @@ export function SelectedUnitPanel({
           type="button"
           aria-label="Skip unit"
           onClick={onSkip}
-          className="rounded bg-slate-700 px-2 py-1 text-xs hover:bg-slate-600"
+          className="flex-1 rounded bg-slate-700 px-1 sm:px-2 py-1 text-xs hover:bg-slate-600"
         >
           Skip
         </button>

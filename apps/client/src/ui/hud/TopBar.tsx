@@ -50,7 +50,7 @@ export function TopBar(): ReactElement {
   return (
     <div
       aria-label="Game status"
-      className="pointer-events-auto flex gap-4 rounded-lg bg-slate-950/85 px-4 py-2 text-sm text-white shadow-lg"
+      className="pointer-events-auto flex flex-wrap gap-2 sm:gap-4 rounded-lg bg-slate-950/85 px-2 sm:px-4 py-2 text-xs sm:text-sm text-white shadow-lg"
     >
       <span aria-label={`Turn ${values.turn}`}>Turn {values.turn}</span>
       <Yield label="Gold" value={values.gold} rate={values.goldPerTurn} />

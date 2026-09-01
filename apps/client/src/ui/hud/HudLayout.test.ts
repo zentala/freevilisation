@@ -59,4 +59,18 @@ describe("HudLayout", () => {
     expect(markup).toContain("md:row-start-2");
     expect(markup).toContain("md:row-span-2");
   });
+
+  it("supports responsive grid layout for various viewport sizes", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(HudLayout, {
+        topBar: React.createElement("span", null, "Turn"),
+        bottomPanel: React.createElement("span", null, "Actions"),
+        rightColumn: React.createElement("span", null, "Alerts"),
+      }),
+    );
+    // Verify the grid-cols class for column layout
+    expect(markup).toContain("grid-cols-[minmax(0,1fr)_auto]");
+    // Verify the grid-rows class for row layout
+    expect(markup).toContain("grid-rows-[auto_minmax(0,1fr)_auto]");
+  });
 });
