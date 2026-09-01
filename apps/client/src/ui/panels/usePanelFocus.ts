@@ -39,7 +39,7 @@ export function usePanelFocus(isOpen: boolean) {
       if (!panelRef.current) return;
 
       const focusableElements = panelRef.current.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
 
       if (focusableElements.length === 0) return;

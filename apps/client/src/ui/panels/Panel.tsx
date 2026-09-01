@@ -81,7 +81,10 @@ export function Panel({
 
   if (mode === "popover") {
     return (
-      <div className="fixed inset-0 flex items-start justify-center p-4 pointer-events-none" ref={backdropZIndexRef}>
+      <div
+        className="fixed inset-0 flex items-start justify-center p-4 pointer-events-none"
+        ref={backdropZIndexRef}
+      >
         <div className="pointer-events-auto">{dialog}</div>
       </div>
     );

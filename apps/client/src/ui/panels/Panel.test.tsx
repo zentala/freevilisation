@@ -106,7 +106,7 @@ describe("Panel", () => {
   });
 
   it("manages z-index dynamically for stacking multiple panels", () => {
-    const { container: container1, rerender: rerender1 } = render(
+    const { container: container1 } = render(
       <Panel open={true} onOpenChange={vi.fn()} title="Panel 1">
         Content 1
       </Panel>,
@@ -138,9 +138,7 @@ describe("Panel", () => {
       </Panel>,
     );
 
-    const buttons = screen.getAllByRole("button");
-    // Last button should be the second button (close button is 3rd)
-    const lastInteractiveButton = buttons[buttons.length - 2];
+    const lastInteractiveButton = screen.getByRole("button", { name: "Second Button" });
 
     // Focus the last interactive button
     lastInteractiveButton.focus();
