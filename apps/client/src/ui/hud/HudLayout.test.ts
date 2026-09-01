@@ -34,8 +34,8 @@ describe("HudLayout", () => {
       }),
     );
     // Verify the grid-cols class for column layout
-    expect(markup).toContain('grid-cols-[minmax(0,1fr)_auto]');
+    expect(markup).toContain("grid-cols-[minmax(0,1fr)_auto]");
     // Verify the grid-rows class for row layout
-    expect(markup).toContain('grid-rows-[auto_minmax(0,1fr)_auto]');
+    expect(markup).toContain("grid-rows-[auto_minmax(0,1fr)_auto]");
   });
 });

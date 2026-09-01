@@ -53,7 +53,9 @@ export function UnitActionsPanel({
       className={`rounded-lg bg-slate-900/90 p-2 sm:p-3 text-slate-100 shadow-xl ${className}`}
     >
       <div className="mb-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <h2 className="font-semibold text-sm sm:text-base truncate">{unit.def.name ?? unit.def.id}</h2>
+        <h2 className="font-semibold text-sm sm:text-base truncate">
+          {unit.def.name ?? unit.def.id}
+        </h2>
         {unit.def.effects && unit.def.effects.length > 0 ? (
           <span className="text-xs text-slate-400" aria-label="Unit effects">
             {unit.def.effects.join(" · ")}

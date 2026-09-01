@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import React from "react";
-import { getAvailableUnitActions, type UnitDefForActions, UnitActionsPanel } from "./UnitActionsPanel";
+import {
+  getAvailableUnitActions,
+  type UnitDefForActions,
+  UnitActionsPanel,
+} from "./UnitActionsPanel";
 
 describe("getAvailableUnitActions", () => {
   it("preserves definition order while removing duplicate orders", () => {
