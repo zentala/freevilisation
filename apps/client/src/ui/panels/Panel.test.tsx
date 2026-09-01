@@ -71,12 +71,7 @@ describe("Panel", () => {
 
   it("applies custom className", () => {
     render(
-      <Panel
-        open={true}
-        onOpenChange={vi.fn()}
-        title="Test Panel"
-        className="custom-class"
-      >
+      <Panel open={true} onOpenChange={vi.fn()} title="Test Panel" className="custom-class">
         Content
       </Panel>,
     );
@@ -86,12 +81,7 @@ describe("Panel", () => {
 
   it("uses aria-describedby when provided", () => {
     render(
-      <Panel
-        open={true}
-        onOpenChange={vi.fn()}
-        title="Test Panel"
-        describedBy="description-id"
-      >
+      <Panel open={true} onOpenChange={vi.fn()} title="Test Panel" describedBy="description-id">
         Content
       </Panel>,
     );

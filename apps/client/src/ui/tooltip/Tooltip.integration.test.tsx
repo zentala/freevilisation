@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { Tooltip } from "./Tooltip";
 
@@ -16,7 +15,7 @@ describe("Tooltip (integration with Testing Library)", () => {
         <button>Warrior</button>
       </Tooltip>,
     );
-    expect(screen.getByText("Warrior")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Warrior" })).toBeInTheDocument();
     expect(screen.getByRole("tooltip")).toHaveTextContent("Warrior");
     expect(screen.getByRole("tooltip")).toHaveTextContent("A strong melee combatant.");
   });
@@ -87,7 +86,6 @@ describe("Tooltip (integration with Testing Library)", () => {
   });
 
   it("makes trigger accessible with keyboard", async () => {
-    const user = userEvent.setup();
     render(
       <Tooltip
         definition={{
