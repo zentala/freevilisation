@@ -50,22 +50,23 @@ export function UnitActionsPanel({
   return (
     <section
       aria-label="Unit actions"
-      className={`rounded-lg bg-slate-900/90 p-3 text-slate-100 shadow-xl ${className}`}
+      className={`rounded-lg bg-slate-900/90 p-2 sm:p-3 text-slate-100 shadow-xl ${className}`}
     >
-      <div className="mb-2 flex items-center justify-between gap-4">
-        <h2 className="font-semibold">{unit.def.name ?? unit.def.id}</h2>
+      <div className="mb-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h2 className="font-semibold text-sm sm:text-base truncate">{unit.def.name ?? unit.def.id}</h2>
         {unit.def.effects && unit.def.effects.length > 0 ? (
           <span className="text-xs text-slate-400" aria-label="Unit effects">
             {unit.def.effects.join(" · ")}
           </span>
         ) : null}
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1 sm:gap-2">
         {actions.map((order) => (
           <button
             key={order}
             type="button"
-            className="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-amber-400"
+            aria-label={`${ORDER_LABELS[order]} unit`}
+            className="rounded bg-amber-500 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm font-medium text-slate-950 hover:bg-amber-400 flex-1 sm:flex-none"
             onClick={() => onOrder(order, unit.id)}
           >
             {ORDER_LABELS[order]}
