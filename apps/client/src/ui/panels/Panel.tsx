@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { usePanelFocus } from "./usePanelFocus";
 
 export type PanelMode = "dialog" | "popover";
 
@@ -25,7 +26,8 @@ export function Panel({
   className = "",
   describedBy,
 }: PanelProps) {
-  const panelRef = useRef<HTMLDivElement>(null);
+  const { panelRef, zIndexRef } = usePanelFocus(open);
+  const backdropZIndexRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -37,9 +39,14 @@ export function Panel({
       }
     };
     document.addEventListener("keydown", handleKeyDown);
-    panelRef.current?.focus();
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onOpenChange, open]);
+
+  useEffect(() => {
+    if (zIndexRef.current !== null && backdropZIndexRef.current) {
+      backdropZIndexRef.current.style.zIndex = String(zIndexRef.current - 1);
+    }
+  }, [zIndexRef]);
 
   if (!open) return null;
 
@@ -74,7 +81,10 @@ export function Panel({
 
   if (mode === "popover") {
     return (
-      <div className="fixed inset-0 z-40 flex items-start justify-center p-4 pointer-events-none">
+      <div
+        className="fixed inset-0 flex items-start justify-center p-4 pointer-events-none"
+        ref={backdropZIndexRef}
+      >
         <div className="pointer-events-auto">{dialog}</div>
       </div>
     );
@@ -82,7 +92,8 @@ export function Panel({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4 animate-in fade-in"
+      ref={backdropZIndexRef}
+      className="fixed inset-0 flex items-center justify-center bg-slate-950/60 p-4 animate-in fade-in"
       data-panel-backdrop="true"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onOpenChange(false);
