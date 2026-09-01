@@ -100,8 +100,10 @@ describe("Tooltip (integration with Testing Library)", () => {
       </Tooltip>,
     );
     const trigger = screen.getByText("Trigger");
-    expect(trigger.parentElement).toHaveAttribute("tabIndex", "0");
-    trigger.parentElement?.focus();
+    const triggerWrapper = trigger.parentElement;
+    expect(triggerWrapper).not.toBeNull();
+    expect(triggerWrapper).toHaveAttribute("tabIndex", "0");
+    triggerWrapper?.focus();
     const tooltip = screen.getByRole("tooltip");
     expect(tooltip).toHaveClass("group-focus-within:block");
   });

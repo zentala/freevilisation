@@ -108,6 +108,7 @@ describe("Panel", () => {
       </Panel>,
     );
     const backdrop = container.querySelector('[data-panel-backdrop="true"]');
+    expect(backdrop).not.toBeNull();
     if (backdrop) {
       await user.click(backdrop);
       expect(onOpenChange).toHaveBeenCalledWith(false);
