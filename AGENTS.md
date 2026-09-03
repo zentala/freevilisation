@@ -5,6 +5,14 @@
 Work ONLY inside the directory you were started in. Never touch files outside
 it, never `git merge`, never `git push`. The orchestrating agent merges.
 
+## Worktrees
+
+- Create every temporary Git worktree only under `.plan/worktrees/` in this
+  repository. Do not create worktrees beside the repository or under
+  `.agents/`, `.dispatch/`, `.tmp-worktrees/`, or any other path.
+- Before integrating or removing a worktree, inspect the live agent registry
+  and its durable handoff. Keep unmerged or dirty worktrees for review.
+
 ## What this repo is
 
 Browser-based, turn-based 4X strategy game (Civ-like), AGPL-3.0, TypeScript
