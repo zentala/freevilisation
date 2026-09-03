@@ -1,0 +1,10 @@
+worktree:
+  guards:
+    - node_modules
+    - apps/client/node_modules
+    - apps/server/node_modules
+    - packages/ai/node_modules
+    - packages/content/node_modules
+    - packages/engine/node_modules
+    - packages/mapgen/node_modules
+    - packages/protocol/node_modules
