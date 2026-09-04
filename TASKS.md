@@ -1,5 +1,7 @@
 # Freevilisation — orchestration-linked tasks
 
+Current session handoff: [AO readiness and browser smoke](.plan/handoffs/H-2026-09-04-ao-browser-and-readiness.md).
+
 Ten plik zawiera wyłącznie zadania integracyjne związane z Agent Orchestration
 System. Właściwe zadania produktu pozostają w `freevilisation/.plan/` oraz w KB.
 
