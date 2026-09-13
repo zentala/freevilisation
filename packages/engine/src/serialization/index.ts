@@ -1,10 +1,10 @@
-import { createHash } from "node:crypto";
 import type { GameState } from "../game-state.js";
 import type { Registry } from "../registry.js";
 import type { EntityId, PlayerId } from "../ids.js";
 import { canonicalize, projectState } from "./canonicalize.js";
 import { reviveUnit, reviveCity, revivePlayer, reviveTile } from "./revive.js";
 import { asNum, asBool, SerializationError, type Any } from "./validate.js";
+import { sha256 } from "./sha256.js";
 
 export { SerializationError };
 
@@ -69,5 +69,5 @@ export function deserialize(json: string, registry: Registry): GameState {
 
 export function stateHash(state: GameState): string {
   const canonical = canonicalize(projectState(state));
-  return createHash("sha256").update(canonical).digest("hex");
+  return sha256(canonical);
 }
