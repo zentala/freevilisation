@@ -47,12 +47,8 @@ export function sha256(message: string): string {
     }
 
     for (let j = 16; j < 64; j++) {
-      const s0 =
-        (rotr(w[j - 15]!, 7) ^ rotr(w[j - 15]!, 18) ^ (w[j - 15]! >>> 3)) >>>
-        0;
-      const s1 =
-        (rotr(w[j - 2]!, 17) ^ rotr(w[j - 2]!, 19) ^ (w[j - 2]! >>> 10)) >>>
-        0;
+      const s0 = (rotr(w[j - 15]!, 7) ^ rotr(w[j - 15]!, 18) ^ (w[j - 15]! >>> 3)) >>> 0;
+      const s1 = (rotr(w[j - 2]!, 17) ^ rotr(w[j - 2]!, 19) ^ (w[j - 2]! >>> 10)) >>> 0;
       w[j] = (w[j - 16]! + s0 + w[j - 7]! + s1) >>> 0;
     }
 
@@ -94,14 +90,7 @@ export function sha256(message: string): string {
   }
 
   return (
-    toHex(h0) +
-    toHex(h1) +
-    toHex(h2) +
-    toHex(h3) +
-    toHex(h4) +
-    toHex(h5) +
-    toHex(h6) +
-    toHex(h7)
+    toHex(h0) + toHex(h1) + toHex(h2) + toHex(h3) + toHex(h4) + toHex(h5) + toHex(h6) + toHex(h7)
   );
 }
 
