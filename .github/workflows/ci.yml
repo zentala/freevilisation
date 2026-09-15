@@ -96,6 +96,14 @@ jobs:
           else
             from="$PUSH_BEFORE"; to="$PUSH_AFTER"
             case "$from" in ""|0000000000000000000000000000000000000000) from="$to~1" ;; esac
+            # History rewrites (force-push, rebase, squash-merge) or shallow
+            # fetch cutoffs can leave $from pointing at a SHA that is no
+            # longer reachable, which makes commitlint's git log range
+            # blow up with "Invalid revision range". Fall back to just the
+            # latest commit in that case.
+            if ! git cat-file -e "$from" 2>/dev/null; then
+              from="$to~1"
+            fi
           fi
           pnpm exec commitlint --from "$from" --to "$to" --verbose
 
